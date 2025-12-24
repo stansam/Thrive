@@ -268,9 +268,11 @@ export default function Navbar() {
                                 </DropdownMenu>
                             </>
                         ) : (
-                            <Button className="bg-[#88734C] hover:bg-[#7a6540] text-white">
-                                Sign In
-                            </Button>
+                            <Link href="/sign-in">
+                                <Button className="bg-[#88734C] hover:bg-[#7a6540] text-white">
+                                    Sign In
+                                </Button>
+                            </Link>
                         )}
                         {!isLoggedIn && (
                             <Button className="bg-white text-black hover:bg-neutral-200">
