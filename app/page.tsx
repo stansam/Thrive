@@ -10,6 +10,7 @@ import { CustomQuoteForm } from "@/components/custom-quote-form"
 import { ServicesMarquee } from "@/components/blocks/services-marquee"
 import { FeaturedTours } from "@/components/blocks/featured-tours"
 import { PricingSection } from "@/components/blocks/pricing-section"
+import AboutUsSection from "@/components/ui/about-us-section"
 import { Plane, FileText, Users, Building2, Map, Info, Headphones } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -143,6 +144,9 @@ export default function SplineSceneBasic() {
 
       {/* Pricing Section */}
       <PricingSection />
+
+      {/* About Us Section */}
+      <AboutUsSection />
     </div>
   )
 }
