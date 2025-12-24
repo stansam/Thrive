@@ -20,11 +20,13 @@ export function ServicesMarquee({
     className
 }: ServicesMarqueeProps) {
     return (
-        <section className={cn(
-            "bg-black text-white",
-            "py-24 px-0",
-            className
-        )}>
+        <section
+            id="services"
+            className={cn(
+                "bg-black text-white",
+                "py-24 px-0",
+                className
+            )}>
             <div className="mx-auto flex w-full flex-col items-center gap-16">
                 <div className="flex flex-col items-center gap-4 px-4 text-center">
                     <h2 className="max-w-[720px] text-3xl font-bold leading-tight sm:text-5xl">

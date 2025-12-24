@@ -11,6 +11,7 @@ import { ServicesMarquee } from "@/components/blocks/services-marquee"
 import { FeaturedTours } from "@/components/blocks/featured-tours"
 import { PricingSection } from "@/components/blocks/pricing-section"
 import AboutUsSection from "@/components/ui/about-us-section"
+import FooterSection from "@/components/ui/footer-section"
 import { Plane, FileText, Users, Building2, Map, Info, Headphones } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -147,6 +148,9 @@ export default function SplineSceneBasic() {
 
       {/* About Us Section */}
       <AboutUsSection />
+
+      {/* Footer Section */}
+      <FooterSection />
     </div>
   )
 }
