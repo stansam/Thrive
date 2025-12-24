@@ -15,6 +15,7 @@ This is a [Next.js](https://nextjs.org) project showcasing an interactive 3D sce
     - Conditional rendering for "Group Size".
     - Fields for destinations, dates, and budget.
 - **Services Section**: Auto-scrolling marquee of offered services with Lucide icons.
+- **Pricing Section**: Clear breakdown of corporate packages, booking fees, and add-on services.
 - **Modern UI**: Built with [shadcn/ui](https://ui.shadcn.com/) and Tailwind CSS, featuring glassmorphism and smooth transitions.
 - **API Documentation**: See [API_DOCS.md](API_DOCS.md) for expected backend integration details.
 
