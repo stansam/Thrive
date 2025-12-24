@@ -12,6 +12,7 @@ import { FeaturedTours } from "@/components/blocks/featured-tours"
 import { PricingSection } from "@/components/blocks/pricing-section"
 import AboutUsSection from "@/components/ui/about-us-section"
 import FooterSection from "@/components/ui/footer-section"
+import Navbar from "@/components/ui/navbar"
 import { Plane, FileText, Users, Building2, Map, Info, Headphones } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -57,6 +58,8 @@ export default function SplineSceneBasic() {
 
   return (
     <div className="min-h-screen bg-black dark font-sans">
+      <Navbar />
+
       {/* Hero Section */}
       <section className="flex items-center justify-center p-4 min-h-screen">
         <Card className="w-full h-[600px] bg-black/[0.96] relative overflow-hidden border-neutral-800">
