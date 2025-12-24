@@ -1,65 +1,140 @@
-import Image from "next/image";
+'use client'
 
-export default function Home() {
+import { useState } from 'react'
+import { SplineScene } from "@/components/ui/splite";
+import { Card } from "@/components/ui/card"
+import { Spotlight } from "@/components/ui/spotlight"
+import { Button } from "@/components/ui/button"
+import { BookFlightForm } from "@/components/book-flight-form"
+import { CustomQuoteForm } from "@/components/custom-quote-form"
+import { ServicesMarquee } from "@/components/blocks/services-marquee"
+import { Plane, FileText, Users, Building2, Map, Info, Headphones } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+const services = [
+  {
+    title: "Airline Ticket Booking",
+    description: "Seamless domestic and international flight reservations with competitive rates.",
+    icon: Plane
+  },
+  {
+    title: "Group Travel Coordination",
+    description: "Expert planning for large groups, ensuring smooth logistics and accommodation.",
+    icon: Users
+  },
+  {
+    title: "Corporate Travel Planning",
+    description: "Tailored solutions for business travel, optimizing efficiency and comfort.",
+    icon: Building2
+  },
+  {
+    title: "Itinerary Planning",
+    description: "Customized travel schedules designed to make the most of your trip.",
+    icon: Map
+  },
+  {
+    title: "Travel Consultation",
+    description: "Guidance on visa rules, entry requirements, and destination specifics.",
+    icon: Info
+  },
+  {
+    title: "24/7 Concierge Support",
+    description: "Round-the-clock assistance for any travel needs or emergencies.",
+    icon: Headphones
+  }
+]
+
+export default function SplineSceneBasic() {
+  const [activeForm, setActiveForm] = useState<'none' | 'book' | 'quote'>('none')
+
+  const toggleForm = (form: 'book' | 'quote') => {
+    setActiveForm(curr => curr === form ? 'none' : form)
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="min-h-screen bg-black dark font-sans">
+      {/* Hero Section */}
+      <section className="flex items-center justify-center p-4 min-h-screen">
+        <Card className="w-full h-[600px] bg-black/[0.96] relative overflow-hidden border-neutral-800">
+          <Spotlight
+            className="-top-40 left-0 md:left-60 md:-top-20"
+            fill="white"
+          />
+
+          <div className="flex h-full flex-col md:flex-row relative">
+            {/* Left content */}
+            <div className="flex-1 p-8 relative z-10 flex flex-col justify-center">
+              <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
+                Interactive 3D
+              </h1>
+              <p className="mt-4 text-neutral-300 max-w-lg mb-8">
+                Bring your UI to life with beautiful 3D scenes. Create immersive experiences
+                that capture attention and enhance your design.
+              </p>
+            </div>
+
+            {/* Center Buttons (Vertical) */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex flex-col gap-4">
+              <Button
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "rounded-full w-12 h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300",
+                  activeForm === 'book' && "bg-white text-black border-white hover:bg-neutral-200"
+                )}
+                onClick={() => toggleForm('book')}
+              >
+                <Plane className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "rounded-full w-12 h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300",
+                  activeForm === 'quote' && "bg-white text-black border-white hover:bg-neutral-200"
+                )}
+                onClick={() => toggleForm('quote')}
+              >
+                <FileText className="h-5 w-5" />
+              </Button>
+            </div>
+
+            {/* Right content (3D Scene + Forms) */}
+            <div className="flex-1 relative min-h-[300px] md:min-h-full overflow-hidden">
+              {/* 3D Scene */}
+              <div className="w-full h-full relative z-0">
+                <SplineScene
+                  scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
+                  className="w-full h-full"
+                />
+              </div>
+
+              {/* Form Overlays - Positioned to look "held" */}
+              <div className={cn(
+                "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out z-20",
+                activeForm === 'book' ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+              )}>
+                <BookFlightForm className="relative mt-20" />
+              </div>
+
+              <div className={cn(
+                "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out z-20",
+                activeForm === 'quote' ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+              )}>
+                <CustomQuoteForm className="relative mt-20" />
+              </div>
+            </div>
+          </div>
+        </Card>
+      </section>
+
+      {/* Services Section */}
+      <ServicesMarquee
+        title="Our Premium Services"
+        description="Comprehensive travel solutions tailored to your unique needs."
+        services={services}
+        className="bg-black text-white py-12"
+      />
     </div>
-  );
+  )
 }
