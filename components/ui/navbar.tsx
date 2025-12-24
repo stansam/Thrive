@@ -161,11 +161,11 @@ export default function Navbar() {
                                 <NavigationMenuList>
                                     {navLinks.map((link, index) => (
                                         <NavigationMenuItem key={index}>
-                                            <Link href={link.href} legacyBehavior passHref>
-                                                <NavigationMenuLink className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white")}>
+                                            <NavigationMenuLink asChild className={cn(navigationMenuTriggerStyle(), "bg-transparent text-white hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white cursor-pointer")}>
+                                                <Link href={link.href}>
                                                     {link.label}
-                                                </NavigationMenuLink>
-                                            </Link>
+                                                </Link>
+                                            </NavigationMenuLink>
                                         </NavigationMenuItem>
                                     ))}
                                 </NavigationMenuList>
@@ -270,6 +270,11 @@ export default function Navbar() {
                         ) : (
                             <Button className="bg-[#88734C] hover:bg-[#7a6540] text-white">
                                 Sign In
+                            </Button>
+                        )}
+                        {!isLoggedIn && (
+                            <Button className="bg-white text-black hover:bg-neutral-200">
+                                Get Started
                             </Button>
                         )}
 

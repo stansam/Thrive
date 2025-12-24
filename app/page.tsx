@@ -72,11 +72,10 @@ export default function SplineSceneBasic() {
             {/* Left content */}
             <div className="flex-1 p-8 relative z-10 flex flex-col justify-center">
               <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
-                Interactive 3D
+                Experience the World with Thrive
               </h1>
               <p className="mt-4 text-neutral-300 max-w-lg mb-8">
-                Bring your UI to life with beautiful 3D scenes. Create immersive experiences
-                that capture attention and enhance your design.
+                Your gateway to seamless travel experiences. From flight bookings to custom itineraries, we handle the details so you can focus on the journey.
               </p>
             </div>
 
@@ -84,25 +83,25 @@ export default function SplineSceneBasic() {
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-30 flex flex-col gap-4">
               <Button
                 variant="outline"
-                size="icon"
                 className={cn(
-                  "rounded-full w-12 h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300",
+                  "rounded-full h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300 px-6 gap-2 min-w-[160px]",
                   activeForm === 'book' && "bg-white text-black border-white hover:bg-neutral-200"
                 )}
                 onClick={() => toggleForm('book')}
               >
                 <Plane className="h-5 w-5" />
+                <span className="font-medium">Book Flight</span>
               </Button>
               <Button
                 variant="outline"
-                size="icon"
                 className={cn(
-                  "rounded-full w-12 h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300",
+                  "rounded-full h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300 px-6 gap-2 min-w-[160px]",
                   activeForm === 'quote' && "bg-white text-black border-white hover:bg-neutral-200"
                 )}
                 onClick={() => toggleForm('quote')}
               >
                 <FileText className="h-5 w-5" />
+                <span className="font-medium">Get a Quote</span>
               </Button>
             </div>
 
