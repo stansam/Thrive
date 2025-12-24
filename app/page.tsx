@@ -49,6 +49,8 @@ const services = [
   }
 ]
 
+import { FloatingActionButtons } from "@/components/ui/floating-action-buttons"
+
 export default function SplineSceneBasic() {
   const [activeForm, setActiveForm] = useState<'none' | 'book' | 'quote'>('none')
 
@@ -59,6 +61,7 @@ export default function SplineSceneBasic() {
   return (
     <div className="min-h-screen bg-black dark font-sans">
       <Navbar />
+      <FloatingActionButtons />
 
       {/* Hero Section */}
       <section className="flex items-center justify-center p-4 min-h-screen">

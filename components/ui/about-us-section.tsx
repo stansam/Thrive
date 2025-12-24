@@ -18,7 +18,7 @@ import {
     Award,
     Clock,
 } from "lucide-react"
-import { motion, useScroll, useTransform, useInView, useSpring } from "framer-motion"
+import { motion, useScroll, useTransform, useInView, useSpring, type Variants } from "framer-motion"
 
 export default function AboutUsSection() {
     const [isVisible, setIsVisible] = useState(false)
