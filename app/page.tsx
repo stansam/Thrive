@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { BookFlightForm } from "@/components/book-flight-form"
 import { CustomQuoteForm } from "@/components/custom-quote-form"
 import { ServicesMarquee } from "@/components/blocks/services-marquee"
+import { FeaturedTours } from "@/components/blocks/featured-tours"
 import { PricingSection } from "@/components/blocks/pricing-section"
 import { Plane, FileText, Users, Building2, Map, Info, Headphones } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -136,6 +137,9 @@ export default function SplineSceneBasic() {
         services={services}
         className="bg-black text-white py-12"
       />
+
+      {/* Featured Tours Section */}
+      <FeaturedTours />
 
       {/* Pricing Section */}
       <PricingSection />
