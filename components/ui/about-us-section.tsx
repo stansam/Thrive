@@ -43,22 +43,23 @@ export default function AboutUsSection() {
     }, [])
 
     const containerVariants: Variants = {
-        hidden: { opacity: 0 },
+        hidden: { opacity: 1 }, // Changed to visible initially
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.2,
-                delayChildren: 0.3,
+                // Removed stagger/delay effects
+                staggerChildren: 0,
+                delayChildren: 0,
             },
         },
     }
 
     const itemVariants: Variants = {
-        hidden: { y: 20, opacity: 0 },
+        hidden: { y: 0, opacity: 1 }, // Changed to visible initially
         visible: {
             y: 0,
             opacity: 1,
-            transition: { duration: 0.6, ease: "easeOut" },
+            transition: { duration: 0 }, // Removed transition duration
         },
     }
 
@@ -214,49 +215,45 @@ export default function AboutUsSection() {
                         <motion.div className="relative w-full max-w-xs" variants={itemVariants}>
                             <motion.div
                                 className="rounded-md overflow-hidden shadow-xl"
-                                initial={{ scale: 0.9, opacity: 0 }}
+                                initial={{ scale: 1, opacity: 1 }} // Changed for static display
                                 animate={{ scale: 1, opacity: 1 }}
-                                transition={{ duration: 0.8, delay: 0.3 }}
+                                transition={{ duration: 0 }}
                                 whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
                             >
-                                {/* Changed to a travel-themed image */}
+                                {/* Changed to CEO Woman image */}
                                 <img
-                                    src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=1000&auto=format&fit=crop"
-                                    alt="Travel Experience"
+                                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1000&auto=format&fit=crop"
+                                    alt="Thrive CEO"
                                     className="w-full h-full object-cover aspect-[3/4]"
                                 />
                                 <motion.div
                                     className="absolute inset-0 bg-gradient-to-t from-[#202e44]/90 to-transparent flex items-end justify-center p-6 text-center"
-                                    initial={{ opacity: 0 }}
+                                    initial={{ opacity: 1 }} // Static display
                                     animate={{ opacity: 1 }}
-                                    transition={{ duration: 0.8, delay: 0.9 }}
                                 >
                                     <div>
-                                        <p className="text-white font-medium text-sm mb-1">Prepared by</p>
+                                        <p className="text-white font-medium text-sm mb-1">Founder & CEO</p>
                                         <p className="text-[#88734C] font-bold text-lg">Dr. Edna Kemboi</p>
                                     </div>
                                 </motion.div>
                             </motion.div>
                             <motion.div
                                 className="absolute inset-0 border-4 border-[#A9BBC8] rounded-md -m-3 z-[-1]"
-                                initial={{ opacity: 0, scale: 1.1 }}
+                                initial={{ opacity: 1, scale: 1 }} // Static display
                                 animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.8, delay: 0.6 }}
                             ></motion.div>
 
                             {/* Floating accent elements */}
                             <motion.div
                                 className="absolute -top-4 -right-8 w-16 h-16 rounded-full bg-[#88734C]/10"
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 1, y: 0 }} // Static display
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 1, delay: 0.9 }}
                                 style={{ y: y1 }}
                             ></motion.div>
                             <motion.div
                                 className="absolute -bottom-6 -left-10 w-20 h-20 rounded-full bg-[#A9BBC8]/15"
-                                initial={{ opacity: 0, y: -20 }}
+                                initial={{ opacity: 1, y: 0 }} // Static display
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 1, delay: 1.1 }}
                                 style={{ y: y2 }}
                             ></motion.div>
                         </motion.div>

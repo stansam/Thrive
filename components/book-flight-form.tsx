@@ -21,7 +21,7 @@ export function BookFlightForm({ className }: { className?: string }) {
     const [toValue, setToValue] = React.useState("")
 
     return (
-        <Card className={cn("w-full max-w-[400px] p-6 bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-2xl", className)}>
+        <Card className={cn("w-[400px] p-6 bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-2xl", className)}>
             <div className="space-y-4">
                 <h2 className="text-xl font-semibold mb-4 text-center">Book Your Flight</h2>
 

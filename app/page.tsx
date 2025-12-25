@@ -64,30 +64,33 @@ export default function SplineSceneBasic() {
       <FloatingActionButtons />
 
       {/* Hero Section */}
-      <section className="flex items-center justify-center p-4 min-h-screen pt-20 md:pt-4">
-        <Card className="w-full min-h-[900px] h-auto md:h-[600px] bg-black/[0.96] relative overflow-hidden border-neutral-800 flex flex-col">
+      <section className="flex items-center justify-center p-4 min-h-screen">
+        <Card className="w-full min-h-[600px] h-auto bg-black/[0.96] relative overflow-hidden border-neutral-800 transition-[height] duration-500 ease-in-out">
           <Spotlight
             className="-top-40 left-0 md:left-60 md:-top-20"
             fill="white"
           />
 
-          <div className="flex h-full flex-col md:flex-row relative flex-1">
+          <div className="flex h-full flex-col md:flex-row relative">
             {/* Left content */}
-            <div className="flex-1 p-8 relative z-10 flex flex-col justify-center text-center md:text-left">
+            <div className="flex-1 p-8 relative z-10 flex flex-col justify-center min-h-[300px]">
               <h1 className="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-50 to-neutral-400">
                 Experience the World with Thrive
               </h1>
-              <p className="mt-4 text-neutral-300 max-w-lg mb-8 mx-auto md:mx-0">
+              <p className="mt-4 text-neutral-300 max-w-lg mb-8">
                 Your gateway to seamless travel experiences. From flight bookings to custom itineraries, we handle the details so you can focus on the journey.
               </p>
             </div>
 
-            {/* Center Buttons (Responsive: Row on Mobile, Col on Desktop, Absolute on Desktop) */}
-            <div className="relative md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 z-30 flex flex-row md:flex-col gap-4 justify-center items-center py-6 md:py-0 w-full md:w-auto bg-black/50 md:bg-transparent backdrop-blur-sm md:backdrop-filter-none">
+            {/* Center Buttons (Responsive) */}
+            <div className={cn(
+              "z-30 flex flex-col gap-4 items-center justify-center p-4",
+              "md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2"
+            )}>
               <Button
                 variant="outline"
                 className={cn(
-                  "rounded-full h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300 px-6 gap-2 min-w-[140px] md:min-w-[160px]",
+                  "rounded-full h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300 px-6 gap-2 min-w-[160px]",
                   activeForm === 'book' && "bg-white text-black border-white hover:bg-neutral-200"
                 )}
                 onClick={() => toggleForm('book')}
@@ -98,7 +101,7 @@ export default function SplineSceneBasic() {
               <Button
                 variant="outline"
                 className={cn(
-                  "rounded-full h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300 px-6 gap-2 min-w-[140px] md:min-w-[160px]",
+                  "rounded-full h-12 border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white transition-all duration-300 px-6 gap-2 min-w-[160px]",
                   activeForm === 'quote' && "bg-white text-black border-white hover:bg-neutral-200"
                 )}
                 onClick={() => toggleForm('quote')}
@@ -109,28 +112,35 @@ export default function SplineSceneBasic() {
             </div>
 
             {/* Right content (3D Scene + Forms) */}
-            <div className="flex-1 relative min-h-[600px] md:min-h-full overflow-hidden w-full">
+            <div className={cn(
+              "flex-1 relative min-h-[400px] md:min-h-full transition-all duration-500",
+              activeForm ? "h-auto" : "h-[400px] md:h-auto"
+            )}>
               {/* 3D Scene */}
-              <div className="w-full h-full relative z-0">
+              <div className="absolute inset-0 z-0">
                 <SplineScene
                   scene="https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode"
                   className="w-full h-full"
                 />
               </div>
 
-              {/* Form Overlays - Positioned to look "held" */}
+              {/* Form Overlays */}
               <div className={cn(
-                "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out z-40 w-full flex justify-center px-4",
-                activeForm === 'book' ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+                "w-full flex items-center justify-center p-4 md:p-0 transition-all duration-500 ease-in-out z-20",
+                // Mobile: Relative when active to push content. Desktop: Absolute centered.
+                "md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
+                activeForm === 'book' ? "relative opacity-100 scale-100" : "absolute opacity-0 scale-95 pointer-events-none top-0"
               )}>
-                <BookFlightForm className="relative mt-20 md:mt-0" />
+                <BookFlightForm className="relative w-full max-w-md md:mt-20" />
               </div>
 
               <div className={cn(
-                "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-500 ease-in-out z-40 w-full flex justify-center px-4",
-                activeForm === 'quote' ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+                "w-full flex items-center justify-center p-4 md:p-0 transition-all duration-500 ease-in-out z-20",
+                // Mobile: Relative when active to push content. Desktop: Absolute centered.
+                "md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
+                activeForm === 'quote' ? "relative opacity-100 scale-100" : "absolute opacity-0 scale-95 pointer-events-none top-0"
               )}>
-                <CustomQuoteForm className="relative mt-20 md:mt-0" />
+                <CustomQuoteForm className="relative w-full max-w-md md:mt-20" />
               </div>
             </div>
           </div>
