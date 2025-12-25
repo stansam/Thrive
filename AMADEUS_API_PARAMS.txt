@@ -1,0 +1,130 @@
+1.FLIGHT OFFERS API:
+
+a.Input Parameters: 
+- currencyCode : string
+- originDestinations:
+    - id : string
+    - originLocationCode : string
+    - originRadius : number
+    - alternativeOriginsCodes : string
+    - destinationLocationCode : string
+    - destinationRadius : number
+    - alternativeDestinationsCodes : string
+    - departureDateTimeRange : 
+        - date : string
+        - dateWindow : string
+        - time : string
+        - timeWindow : string
+    - returnDateTimeRange : 
+        - date : string
+        - dateWindow : string
+        - time : string
+        - timeWindow : string
+    - includedConnectionPoints : string
+    - excludedConnectionPoints : string
+- travelers:
+    - id : string
+    - passengerType : string
+    - associatedAdultId : string
+- sources: string
+- searchCriteria:
+    - excludeAllotments : boolean
+    - excludeOneWayOffers : boolean
+    - maxFlightOffers : number
+    - maxPrice: integer 
+    - allowAlternativeFareOptions: boolean
+    - oneFlightOffersPerDay: boolean
+    - additionalInformation:
+        - chargeableCheckedBags: boolean
+        - brandedFares: boolean
+    - flightFilters: 
+        - crossBorderAllowed: boolean
+        - moreOvernightsAllowed: boolean
+        - returnToDepartureAirport: boolean
+        - railSegmentAllowed: boolean
+        - busSegmentAllowed: boolean
+        - maxFlightTime: number
+        - carrierRestrictions: 
+            - restrictedInEUAllowed: boolean
+            - includedAirlineCodes: string
+            - excludedAirlineCodes: string
+        - cabinRestrictions:
+            - cabin: string
+            - coverage: string
+            - originDestinationIds: string
+        - connectionRestrictions:
+            - maximumNumberOfConnections: number
+            - airportChangeAllowed: boolean
+            - technicalStopsAllowed: boolean
+
+b. Output Parameters: 
+- type: string
+- id: string
+- source: string
+- instantTicketingRecquired: boolean
+- disablePring: boolean
+- nonHomogeneous: boolean
+- oneWay: boolean
+- paymentCardRequired: boolean
+- numberOfBookableSeats: number
+- lastTicketingDate: string
+- itineraries:
+    - departure:
+        - iataCode: string
+        - terminal: string
+        - at: string
+    - arrival:
+        - iataCode: string
+        - terminal: string
+        - at: string
+    - carrierCode: string
+    - number: string
+    - aircraft: 
+        -code: string
+    - operating:
+        - carrierCode: string
+    - duration: string
+    - stops:
+        - iataCode: string
+        - duration: string
+        - arrivalAt: string
+        - departureAt: string
+    - id: string
+    - numberOfStops: number
+    - blacklistedInEU: boolean
+- price:
+    - currency: string
+    - total: string
+    - base: string
+    - fees: 
+        - amount: string
+        - type: string
+    - taxes:
+        - amount: string
+        - code: string
+    - margin: string
+    - grandTotal: string
+    - billingCurrency: string
+    - additionalServices:
+        - amount: string
+        - type: string
+        - chargeableCheckedBags:
+            - quantity: integer
+            - weight: integer
+            - weightUnit: string
+        - chargeableSeatNumber: string
+- pricingOptions: 
+    - publishedFares: boolean
+    - negotiatedFares: boolean
+    - corporateFares: boolean
+    - corporateCodes: string
+    - includeCheckedBags: boolean
+- fareRules:
+    - currency: string
+    - rules:
+        - category: string
+        - circumstance: string
+        - notApplicable: boolean
+        - maxPenaltyAmount: string
+        - description: 
+            - class itineraries {duration: string, segments: {depature, arrival, carrierCode, ..., }(These segments are present in itineraries field above.) }

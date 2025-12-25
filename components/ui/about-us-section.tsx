@@ -282,8 +282,8 @@ export default function AboutUsSection() {
                 <motion.div
                     ref={statsRef}
                     className="mt-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
-                    initial="hidden"
-                    animate={isStatsInView ? "visible" : "hidden"}
+                    initial="visible" // Changed to visible
+                    animate="visible"
                     variants={containerVariants}
                 >
                     {stats.map((stat, index) => (
@@ -293,7 +293,7 @@ export default function AboutUsSection() {
                             value={stat.value}
                             label={stat.label}
                             suffix={stat.suffix}
-                            delay={index * 0.1}
+                            delay={0} // Removed delay
                         />
                     ))}
                 </motion.div>
@@ -301,9 +301,9 @@ export default function AboutUsSection() {
                 {/* Mission & Vision Section (Replaces CTA) */}
                 <motion.div
                     className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-6"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={isStatsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-                    transition={{ duration: 0.8, delay: 0.5 }}
+                    initial={{ opacity: 1, y: 0 }} // Static display
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0 }}
                 >
                     <div className="bg-[#202e44] text-white p-8 rounded-xl">
                         <h3 className="text-xl font-bold mb-3 text-[#88734C]">Our Mission</h3>
@@ -322,7 +322,6 @@ export default function AboutUsSection() {
         </section>
     )
 }
-
 
 
 interface ServiceItemProps {
@@ -372,6 +371,7 @@ function ServiceItem({ icon, secondaryIcon, title, description, variants, delay,
     )
 }
 
+
 interface StatCounterProps {
     icon: React.ReactNode
     value: number
@@ -381,6 +381,7 @@ interface StatCounterProps {
 }
 
 function StatCounter({ icon, value, label, suffix, delay }: StatCounterProps) {
+    // ... spring logic remains for number counting ...
     const countRef = useRef(null)
     const isInView = useInView(countRef, { once: false })
     const [hasAnimated, setHasAnimated] = useState(false)
@@ -406,11 +407,11 @@ function StatCounter({ icon, value, label, suffix, delay }: StatCounterProps) {
         <motion.div
             className="bg-white/50 backdrop-blur-sm p-6 rounded-xl flex flex-col items-center text-center group hover:bg-white transition-colors duration-300"
             variants={{
-                hidden: { opacity: 0, y: 20 },
+                hidden: { opacity: 1, y: 0 }, // Static
                 visible: {
                     opacity: 1,
                     y: 0,
-                    transition: { duration: 0.6, delay },
+                    transition: { duration: 0 }, // Immediate
                 },
             }}
             whileHover={{ y: -5, transition: { duration: 0.2 } }}
