@@ -65,7 +65,7 @@ export default function SplineSceneBasic() {
 
       {/* Hero Section */}
       <section className="flex items-center justify-center p-4 min-h-screen pt-20 md:pt-4">
-        <Card className="w-full min-h-[600px] h-auto md:h-[600px] bg-black/[0.96] relative overflow-hidden border-neutral-800 flex flex-col">
+        <Card className="w-full min-h-[900px] h-auto md:h-[600px] bg-black/[0.96] relative overflow-hidden border-neutral-800 flex flex-col">
           <Spotlight
             className="-top-40 left-0 md:left-60 md:-top-20"
             fill="white"
@@ -109,7 +109,7 @@ export default function SplineSceneBasic() {
             </div>
 
             {/* Right content (3D Scene + Forms) */}
-            <div className="flex-1 relative min-h-[400px] md:min-h-full overflow-hidden w-full">
+            <div className="flex-1 relative min-h-[600px] md:min-h-full overflow-hidden w-full">
               {/* 3D Scene */}
               <div className="w-full h-full relative z-0">
                 <SplineScene
