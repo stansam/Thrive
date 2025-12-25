@@ -275,9 +275,11 @@ export default function Navbar() {
                             </Link>
                         )}
                         {!isLoggedIn && (
-                            <Button className="bg-white text-black hover:bg-neutral-200">
-                                Get Started
-                            </Button>
+                            <Link href="/sign-up">
+                                <Button className="bg-white text-black hover:bg-neutral-200">
+                                    Get Started
+                                </Button>
+                            </Link>
                         )}
 
                         {/* Mobile Menu Toggle */}
