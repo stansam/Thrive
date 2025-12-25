@@ -13,7 +13,7 @@ export function CustomQuoteForm({ className }: { className?: string }) {
     const [clientType, setClientType] = React.useState("individual")
 
     return (
-        <Card className={cn("w-[400px] p-6 bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-2xl", className)}>
+        <Card className={cn("w-full max-w-[400px] p-6 bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-2xl", className)}>
             <div className="space-y-4">
                 <h2 className="text-xl font-semibold mb-2 text-center">Request Quote</h2>
 
