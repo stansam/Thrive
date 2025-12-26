@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
 import { MapPin, Minus, Plus, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 export function BookFlightForm({ className }: { className?: string }) {
     const [adults, setAdults] = React.useState(1)
@@ -133,9 +134,11 @@ export function BookFlightForm({ className }: { className?: string }) {
                     </div>
                 </div>
 
-                <Button className="w-full bg-white text-black hover:bg-neutral-200 mt-2">
-                    <Search className="mr-2 h-4 w-4" /> Search Flights
-                </Button>
+                <Link href="/flights/results" passHref>
+                    <Button className="w-full bg-white text-black hover:bg-neutral-200 mt-2">
+                        <Search className="mr-2 h-4 w-4" /> Search Flights
+                    </Button>
+                </Link>
             </div>
         </Card>
     )
