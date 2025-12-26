@@ -201,62 +201,71 @@ function FlightResultsContent() {
                 {loading ? (
                     <div className={cn(
                         "grid gap-6",
-                        viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
+                        viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "flex flex-col items-center"
                     )}>
                         {[1, 2, 3, 4].map((i) => (
                             <div key={i} className={cn(
-                                "bg-neutral-900/50 rounded-xl animate-pulse border border-white/5",
-                                viewMode === 'grid' ? "h-[350px]" : "h-40"
+                                "bg-neutral-900/50 rounded-xl animate-pulse border border-white/5 w-full",
+                                viewMode === 'grid' ? "h-[350px]" : "h-40 max-w-5xl"
                             )} />
                         ))}
                     </div>
                 ) : (
                     <>
                         {MOCK_FLIGHTS.length > 0 ? (
-                            <div className={cn(
-                                "grid gap-6",
-                                viewMode === 'grid' ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "grid-cols-1"
-                            )}>
-                                {MOCK_FLIGHTS.map((flight) => (
-                                    viewMode === 'list' ? (
-                                        <FlightCard
-                                            key={flight.id}
-                                            airline={{
-                                                name: flight.airline.name,
-                                                logo: flight.airline.logo,
-                                                flightNumber: flight.airline.flightNumber
-                                            }}
-                                            departureTime={flight.departureTime}
-                                            arrivalTime={flight.arrivalTime}
-                                            duration={flight.duration}
-                                            stops={flight.stops}
-                                            price={flight.price}
-                                            currency={flight.currency}
-                                            offer={flight.offer}
-                                            refundableType={flight.refundableType}
-                                            onBook={() => alert(`Booking flight ${flight.id}`)}
-                                            onFlightDetails={() => alert(`Details for ${flight.id}`)}
-                                        />
-                                    ) : (
-                                        <FlightCardGrid
-                                            key={flight.id}
-                                            imageUrl={flight.imageUrl}
-                                            airline={flight.airline.name}
-                                            flightCode={flight.airline.flightNumber}
-                                            flightClass={flight.class}
-                                            departureCode={flight.departureCode}
-                                            departureCity={flight.departureCity}
-                                            departureTime={flight.departureTime}
-                                            arrivalCode={flight.arrivalCode}
-                                            arrivalCity={flight.arrivalCity}
-                                            arrivalTime={flight.arrivalTime}
-                                            duration={flight.duration}
-                                            price={formatPrice(flight.price, flight.currency)}
-                                            onBook={() => alert(`Booking flight ${flight.id}`)}
-                                        />
-                                    )
-                                ))}
-                            </div>
+                            <>
+                                <div className={cn(
+                                    "gap-6",
+                                    viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "flex flex-col items-center w-full"
+                                )}>
+                                    {MOCK_FLIGHTS.map((flight) => (
+                                        viewMode === 'list' ? (
+                                            <FlightCard
+                                                key={flight.id}
+                                                airline={{
+                                                    name: flight.airline.name,
+                                                    logo: flight.airline.logo,
+                                                    flightNumber: flight.airline.flightNumber
+                                                }}
+                                                departureTime={flight.departureTime}
+                                                arrivalTime={flight.arrivalTime}
+                                                duration={flight.duration}
+                                                stops={flight.stops}
+                                                price={flight.price}
+                                                currency={flight.currency}
+                                                offer={flight.offer}
+                                                refundableType={flight.refundableType}
+                                                onBook={() => alert(`Booking flight ${flight.id}`)}
+                                                onFlightDetails={() => alert(`Details for ${flight.id}`)}
+                                            />
+                                        ) : (
+                                            <FlightCardGrid
+                                                key={flight.id}
+                                                imageUrl={flight.imageUrl}
+                                                airline={flight.airline.name}
+                                                flightCode={flight.airline.flightNumber}
+                                                flightClass={flight.class}
+                                                departureCode={flight.departureCode}
+                                                departureCity={flight.departureCity}
+                                                departureTime={flight.departureTime}
+                                                arrivalCode={flight.arrivalCode}
+                                                arrivalCity={flight.arrivalCity}
+                                                arrivalTime={flight.arrivalTime}
+                                                duration={flight.duration}
+                                                price={formatPrice(flight.price, flight.currency)}
+                                                onBook={() => alert(`Booking flight ${flight.id}`)}
+                                            />
+                                        )
+                                    ))}
+                                </div>
+
+                                {/* Total Results Indicator */}
+                                <div className="fixed bottom-6 right-6 z-40">
+                                    <Badge className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-4 py-2 text-sm shadow-xl hover:bg-white/20 transition-colors">
+                                        Total Results: {MOCK_FLIGHTS.length}
+                                    </Badge>
+                                </div>
+                            </>
                         ) : (
                             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
                                 <div className="w-16 h-16 bg-neutral-900 rounded-full flex items-center justify-center mb-4">
