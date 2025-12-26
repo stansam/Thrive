@@ -109,6 +109,7 @@ function FlightResultsContent() {
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+    const [sortBy, setSortBy] = useState<'best_value' | 'fastest'>('best_value');
 
     // Simulate loading state
     useEffect(() => {
@@ -126,6 +127,29 @@ function FlightResultsContent() {
             maximumFractionDigits: 0,
         }).format(price);
     }
+
+    const scrollToSearch = () => {
+        const searchElement = document.getElementById('advanced-search-form');
+        if (searchElement) {
+            searchElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    const parseDuration = (duration: string) => {
+        const hoursMatch = duration.match(/(\d+)h/);
+        const minutesMatch = duration.match(/(\d+)m/);
+        const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
+        const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
+        return (hours * 60) + minutes;
+    };
+
+    const sortedFlights = [...MOCK_FLIGHTS].sort((a, b) => {
+        if (sortBy === 'fastest') {
+            return parseDuration(a.duration) - parseDuration(b.duration);
+        }
+        // Default to price (Best Value approximation for this demo)
+        return a.price - b.price;
+    });
 
     return (
         <div className="min-h-screen bg-black text-white font-sans flex flex-col">
@@ -154,7 +178,9 @@ function FlightResultsContent() {
                     </div>
 
                     {/* The Advanced Search Component */}
-                    <AdvancedFlightSearch className="mb-8" />
+                    <div id="advanced-search-form">
+                        <AdvancedFlightSearch className="mb-8" />
+                    </div>
                 </div>
             </section>
 
@@ -163,14 +189,37 @@ function FlightResultsContent() {
                 {/* Toolbar */}
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6 sticky top-20 z-30 bg-black/80 backdrop-blur-md p-4 rounded-xl border border-white/5">
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" className="h-9 gap-2 text-xs border-dashed">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-9 gap-2 text-xs border-neutral-700 bg-neutral-900 text-white hover:bg-neutral-100 hover:text-black transition-colors"
+                            onClick={scrollToSearch}
+                        >
                             <SlidersHorizontal className="h-3.5 w-3.5" /> Filter Results
                         </Button>
                         <div className="h-4 w-[1px] bg-neutral-800 mx-2" />
                         <div className="flex items-center gap-2">
                             {/* Example Quick Filters */}
-                            <Badge variant="secondary" className="cursor-pointer hover:bg-neutral-700">Best Value</Badge>
-                            <Badge variant="outline" className="cursor-pointer hover:bg-neutral-800 border-dashed text-neutral-400">Fastest</Badge>
+                            <Badge
+                                variant={sortBy === 'best_value' ? 'default' : 'secondary'}
+                                className={cn(
+                                    "cursor-pointer transition-colors",
+                                    sortBy === 'best_value' ? "bg-white text-black hover:bg-neutral-200" : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700"
+                                )}
+                                onClick={() => setSortBy('best_value')}
+                            >
+                                Best Value
+                            </Badge>
+                            <Badge
+                                variant={sortBy === 'fastest' ? 'default' : 'secondary'}
+                                className={cn(
+                                    "cursor-pointer border-dashed transition-colors",
+                                    sortBy === 'fastest' ? "bg-white text-black hover:bg-neutral-200" : "bg-neutral-800 text-neutral-400 hover:bg-neutral-700 border-neutral-700"
+                                )}
+                                onClick={() => setSortBy('fastest')}
+                            >
+                                Fastest
+                            </Badge>
                         </div>
                     </div>
 
@@ -212,13 +261,13 @@ function FlightResultsContent() {
                     </div>
                 ) : (
                     <>
-                        {MOCK_FLIGHTS.length > 0 ? (
+                        {sortedFlights.length > 0 ? (
                             <>
                                 <div className={cn(
                                     "gap-6",
                                     viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "flex flex-col items-center w-full"
                                 )}>
-                                    {MOCK_FLIGHTS.map((flight) => (
+                                    {sortedFlights.map((flight) => (
                                         viewMode === 'list' ? (
                                             <FlightCard
                                                 key={flight.id}
