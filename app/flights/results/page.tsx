@@ -284,8 +284,8 @@ function FlightResultsContent() {
                                                 currency={flight.currency}
                                                 offer={flight.offer}
                                                 refundableType={flight.refundableType}
-                                                onBook={() => alert(`Booking flight ${flight.id}`)}
-                                                onFlightDetails={() => alert(`Details for ${flight.id}`)}
+                                                onBook={() => window.location.href = `/flights/pricing?id=${flight.id}`}
+                                                onFlightDetails={() => window.location.href = `/flights/pricing?id=${flight.id}`}
                                             />
                                         ) : (
                                             <FlightCardGrid
@@ -302,7 +302,7 @@ function FlightResultsContent() {
                                                 arrivalTime={flight.arrivalTime}
                                                 duration={flight.duration}
                                                 price={formatPrice(flight.price, flight.currency)}
-                                                onBook={() => alert(`Booking flight ${flight.id}`)}
+                                                onBook={() => window.location.href = `/flights/pricing?id=${flight.id}`}
                                             />
                                         )
                                     ))}

@@ -1,92 +1,57 @@
-# API Documentation
+# Thrive API Documentation
 
-This document outlines the expected API endpoints and payloads for the Flight Booking and Custom Quote forms.
+## UI Components
 
-## Base URL
-`https://api.thrive-services.com/v1` (Placeholder)
+### TravelerDetailsForm
+Form for collecting traveler information including personal details, contact info, and passport data.
 
----
+**Path**: `components/traveler-details-form.tsx`
+**Props**: `id`, `travelerType`, `onChange`, `errors`.
 
-## 1. Search Flights
+### FlightPricingSummary
+Displays a price breakdown (Base fare, Taxes, Fees) and the total amount.
 
-**Endpoint**: `POST /flights/search`
+**Path**: `components/flight-pricing-summary.tsx`
+**Props**: `baseFare`, `taxes`, `fees`, `currency`, `onProceed`.
 
-### Request Payload
-```json
-{
-  "origin": "SFO",              // Airport code (string)
-  "destination": "JFK",         // Airport code (string)
-  "passengers": {
-    "adults": 1,                // Integer, min 1
-    "children": 0               // Integer, min 0
-  },
-  "departureDate": "2025-06-25" // ISO 8601 Date string (YYYY-MM-DD)
-}
-```
+### FlightItineraryConfirmation
+Detailed view of the flight segments for confirmation.
 
-### Success Response (200 OK)
-```json
-{
-  "searchId": "src_12345",
-  "results": [
-    {
-      "flightId": "fl_987",
-      "airline": "TechAir",
-      "price": 450.00,
-      "departureTime": "2025-06-25T10:00:00Z",
-      "arrivalTime": "2025-06-25T16:00:00Z"
-    }
-  ]
-}
-```
+**Path**: `components/flight-itinerary-confirmation.tsx`
+**Props**: `segments` (Array of flight segments).
 
----
+### FlightEmissionsDisplay
+Displays estimated CO2 emissions and a comparison.
 
-## 2. Request Custom Quote
+**Path**: `components/flight-emissions-display.tsx`
+**Props**: `co2Amount`, `comparison`.
 
-**Endpoint**: `POST /quotes/request`
+### FlightCard (List View)
+Displays flight details in a horizontal list format.
 
-### Request Payload
+**Path**: `components/ui/flight-card.tsx`
+**Props**: standard flight details (airline, times, price, etc.).
 
-**Headers**:
-- `Content-Type`: `application/json`
+### FlightCardGrid (Grid View)
+Displays flight details in a compact card format.
 
-**Body**:
-```json
-{
-  "clientType": "individual",   // Enum: "individual" | "corporate" | "group"
-  "origin": "London",           // String
-  "destination": "Paris",       // String
-  "dates": "Aug-Sep",           // String (Flexible format)
-  "budgetRange": "$1000-$2000", // String
-  "description": "Looking for a luxury package...", // String, Optional
-  
-  // Conditionally required if clientType is "group"
-  "groupSize": 15               // Integer, Optional
-}
-```
+**Path**: `components/ui/flight-card-grid.tsx`
+**Props**: standard flight details key for grid layout.
 
-### Success Response (201 Created)
-```json
-{
-  "quoteId": "qt_5678",
-  "status": "received",
-  "message": "We have received your request and will get back to you shortly."
-}
-```
+## Page Features
 
----
+### Flight Results Page (`/flights/results`)
+- **Advanced Search Form**: Collapsible form for filtering flight parameters.
+- **View Toggle**: List vs Grid views.
+- **Sorting**: Best Value (Price) vs Fastest (Duration).
+- **Navigation**: "Book" button navigates to `/flights/pricing`.
 
-## Error Handling
-
-All endpoints follow standard HTTP error codes:
-- **400 Bad Request**: Invalid input data.
-- **401 Unauthorized**: API key missing or invalid.
-- **500 Internal Server Error**: Service unavailable.
-
-```json
-{
-  "error": "invalid_input",
-  "message": "Departure date cannot be in the past."
-}
-```
+### Flight Pricing Page (`/flights/pricing`)
+- **Purpose**: Confirm price, input traveler details, and convert to booking.
+- **Features**:
+    - Detailed Itinerary view.
+    - Price Breakdown.
+    - Carbon Emissions (CO2) display.
+    - **Traveler Information Form**: Collects Name, DOB, Gender, Email, Phone, Passport.
+- **Validation**: Form must be valid before proceeding to payment (alert simulation).
+- **Mock Data**: Uses `MOCK_PRICING_DATA`.

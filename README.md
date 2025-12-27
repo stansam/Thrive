@@ -17,6 +17,14 @@ This is a [Next.js](https://nextjs.org) project showcasing an interactive 3D sce
 - **Services Section**: Auto-scrolling marquee of offered services with Lucide icons.
 - **Featured Tours**: Carousel showcasing curated travel packages with detailed highlights.
 - **Pricing Section**: Clear breakdown of corporate packages, booking fees, and add-on services.
+- **Flight Results Page**: 
+    - Advanced search filters (Amadeus API parameters).
+    - List and Grid view toggles.
+    - Integration of custom Flight Card components.
+- **Flight Pricing Page**: 
+    - Detailed itinerary confirmation.
+    - Price breakdown (Base fare, Taxes, Fees).
+    - Carbon emissions (CO2) display.
 - **Modern UI**: Built with [shadcn/ui](https://ui.shadcn.com/) and Tailwind CSS, featuring glassmorphism and smooth transitions.
 - **API Documentation**: See [API_DOCS.md](API_DOCS.md) for expected backend integration details.
 
