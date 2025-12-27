@@ -26,6 +26,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import { DatePicker } from '@/components/ui/date-picker';
 
 // --- Options for Filters ---
 const CabinOptions: FilterOption[] = [
@@ -46,8 +47,8 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
     // Core State
     const [origin, setOrigin] = React.useState('');
     const [destination, setDestination] = React.useState('');
-    const [departureDate, setDepartureDate] = React.useState('25 June, 2025');
-    const [returnDate, setReturnDate] = React.useState('');
+    const [departureDate, setDepartureDate] = React.useState<Date | undefined>(new Date());
+    const [returnDate, setReturnDate] = React.useState<Date | undefined>();
     const [travelers, setTravelers] = React.useState(1);
 
     // Advanced State
@@ -158,11 +159,10 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                     <div className="md:col-span-2 relative group">
                         <Label className="text-xs text-neutral-400 ml-1 mb-1.5 block">Departure</Label>
                         <div className="relative">
-                            {/* <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-neutral-500 group-focus-within:text-white transition-colors" /> */}
-                            <Input
-                                value={departureDate}
-                                onChange={(e) => setDepartureDate(e.target.value)}
-                                className="pl-3 bg-neutral-900/50 border-white/10 text-white placeholder:text-neutral-600 focus:border-white/30 h-10 text-center"
+                            <DatePicker
+                                date={departureDate}
+                                setDate={setDepartureDate}
+                                className="bg-neutral-900/50 border-white/10 text-white h-10"
                             />
                         </div>
                     </div>
@@ -171,11 +171,11 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                     <div className="md:col-span-2 relative group">
                         <Label className="text-xs text-neutral-400 ml-1 mb-1.5 block">Return</Label>
                         <div className="relative">
-                            <Input
-                                value={returnDate}
-                                onChange={(e) => setReturnDate(e.target.value)}
+                            <DatePicker
+                                date={returnDate}
+                                setDate={setReturnDate}
                                 placeholder="One Way"
-                                className="pl-3 bg-neutral-900/50 border-white/10 text-white placeholder:text-neutral-600 focus:border-white/30 h-10 text-center"
+                                className="bg-neutral-900/50 border-white/10 text-white h-10"
                             />
                         </div>
                     </div>
@@ -218,7 +218,7 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                         {(selectedCabin.length > 0 || selectedStops.length > 0 || maxPrice) && !isExpanded && (
                             <div className="flex gap-2 text-xs text-neutral-400 items-center">
                                 <Filter className="h-3 w-3" />
-                                <span>Filters active</span>
+                                <span className="text-neural-300">Filters active</span>
                             </div>
                         )}
                     </div>
@@ -301,10 +301,8 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                         <div className="flex items-center gap-2 text-neutral-500">
                             <span className="text-[10px] uppercase tracking-wider font-semibold">Additional Parameters:</span>
                         </div>
-                        {/* These could be more checkbox/toggles if needed, implemented as simple text for now to show depth */}
                         <Label className="flex items-center gap-2 cursor-pointer group">
                             <div className="w-4 h-4 rounded border border-white/20 group-hover:border-white/50 flex items-center justify-center transition-colors">
-                                {/* Checkbox state logic here if needed */}
                             </div>
                             <span className="text-xs text-neutral-400 group-hover:text-neutral-300 transition-colors">Direct only</span>
                         </Label>

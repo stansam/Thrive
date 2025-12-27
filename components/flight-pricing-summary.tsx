@@ -9,12 +9,15 @@ interface PricingItem {
     highlight?: boolean;
 }
 
+import { TravelerData } from "@/components/traveler-details-form";
+
 interface FlightPricingSummaryProps {
     baseFare: number;
     taxes: number;
     fees: number;
     currency?: string;
     onProceed?: () => void;
+    travelerDetails?: TravelerData;
 }
 
 export function FlightPricingSummary({
@@ -22,7 +25,8 @@ export function FlightPricingSummary({
     taxes,
     fees,
     currency = "USD",
-    onProceed
+    onProceed,
+    travelerDetails
 }: FlightPricingSummaryProps) {
     const total = baseFare + taxes + fees;
 
@@ -32,6 +36,13 @@ export function FlightPricingSummary({
                 <CardTitle className="text-xl">Price Summary</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+                {travelerDetails && (travelerDetails.firstName || travelerDetails.lastName) && (
+                    <div className="mb-4 p-3 bg-neutral-800 rounded-md text-sm border border-neutral-700">
+                        <p className="text-neutral-400 text-xs mb-1">Traveler</p>
+                        <p className="font-semibold">{travelerDetails.firstName} {travelerDetails.lastName}</p>
+                        <p className="text-xs text-neutral-500">{travelerDetails.email}</p>
+                    </div>
+                )}
                 <div className="space-y-2 text-sm">
                     <div className="flex justify-between text-neutral-400">
                         <span>Base Fare</span>

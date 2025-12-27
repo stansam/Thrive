@@ -19,7 +19,7 @@ const MOCK_FLIGHTS = [
         id: '1',
         airline: {
             name: 'Emirates',
-            logo: 'https://images.unsplash.com/photo-1582972847525-4b087d3a0c77?q=80&w=200&auto=format&fit=crop', // Placeholder
+            logo: 'https://images.unsplash.com/photo-1570710891163-6d3b5c47248b?q=80&w=200&auto=format&fit=crop',
             flightNumber: 'EK 204'
         },
         departureTime: '10:15',
@@ -41,7 +41,7 @@ const MOCK_FLIGHTS = [
         id: '2',
         airline: {
             name: 'Qatar Airways',
-            logo: 'https://images.unsplash.com/photo-1616423640778-2cfd1e389d42?q=80&w=200&auto=format&fit=crop', // Placeholder
+            logo: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=200&auto=format&fit=crop',
             flightNumber: 'QR 738'
         },
         departureTime: '14:00',

@@ -8,10 +8,12 @@ import { Card } from "@/components/ui/card"
 import { MapPin, Minus, Plus, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { DatePicker } from "@/components/ui/date-picker"
 
 export function BookFlightForm({ className }: { className?: string }) {
     const [adults, setAdults] = React.useState(1)
     const [children, setChildren] = React.useState(0)
+    const [date, setDate] = React.useState<Date | undefined>(new Date())
 
     // Mock airports for dropdown
     const airports = ["San Francisco (SFO)", "New York (JFK)", "London (LHR)", "Tokyo (HND)", "Dubai (DXB)"]
@@ -125,12 +127,8 @@ export function BookFlightForm({ className }: { className?: string }) {
                     </div>
 
                     <div className="flex flex-col space-y-2">
-                        <Label htmlFor="date" className="text-xs text-neutral-400">Departure</Label>
-                        <Input
-                            id="date"
-                            defaultValue="25 June, 2025"
-                            className="bg-black/50 border-white/10 focus:border-white/30 text-center"
-                        />
+                        <Label className="text-xs text-neutral-400">Departure</Label>
+                        <DatePicker date={date} setDate={setDate} className="bg-black/50 border-white/10 text-white" />
                     </div>
                 </div>
 

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -83,12 +84,11 @@ export function TravelerDetailsForm({ id = "1", travelerType = "Adult", onChange
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor={`dob-${id}`}>Date of Birth</Label>
-                            <Input
-                                id={`dob-${id}`}
-                                type="date"
-                                className="bg-neutral-950 border-neutral-800"
-                                value={formData.dateOfBirth}
-                                onChange={(e) => handleChange("dateOfBirth", e.target.value)}
+                            <Label htmlFor={`dob-${id}`}>Date of Birth</Label>
+                            <DatePicker
+                                date={formData.dateOfBirth ? new Date(formData.dateOfBirth) : undefined}
+                                setDate={(d) => handleChange("dateOfBirth", d ? d.toISOString().split('T')[0] : "")}
+                                className="bg-neutral-950 border-neutral-800 text-white justify-start"
                             />
                             {errors.dateOfBirth && <p className="text-xs text-red-500">{errors.dateOfBirth}</p>}
                         </div>
@@ -172,12 +172,11 @@ export function TravelerDetailsForm({ id = "1", travelerType = "Adult", onChange
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor={`expiry-${id}`}>Expiry Date</Label>
-                            <Input
-                                id={`expiry-${id}`}
-                                type="date"
-                                className="bg-neutral-950 border-neutral-800"
-                                value={formData.passportExpiry}
-                                onChange={(e) => handleChange("passportExpiry", e.target.value)}
+                            <Label htmlFor={`expiry-${id}`}>Expiry Date</Label>
+                            <DatePicker
+                                date={formData.passportExpiry ? new Date(formData.passportExpiry) : undefined}
+                                setDate={(d) => handleChange("passportExpiry", d ? d.toISOString().split('T')[0] : "")}
+                                className="bg-neutral-950 border-neutral-800 text-white justify-start"
                             />
                             {errors.passportExpiry && <p className="text-xs text-red-500">{errors.passportExpiry}</p>}
                         </div>

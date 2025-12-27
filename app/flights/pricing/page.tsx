@@ -38,7 +38,7 @@ const MOCK_PRICING_DATA = {
                         aircraft: { code: "777" },
                         duration: "PT5H15M",
                         airlineName: "Emirates",
-                        airlineLogo: "https://images.unsplash.com/photo-1582972847525-4b087d3a0c77?q=80&w=200&auto=format&fit=crop"
+                        airlineLogo: "https://images.unsplash.com/photo-1570710891163-6d3b5c47248b?q=80&w=200&auto=format&fit=crop"
                     }
                 ]
             }
@@ -67,7 +67,7 @@ const MOCK_PRICING_DATA = {
                         number: "738",
                         duration: "PT15H45M",
                         airlineName: "Qatar Airways",
-                        airlineLogo: "https://images.unsplash.com/photo-1616423640778-2cfd1e389d42?q=80&w=200&auto=format&fit=crop"
+                        airlineLogo: "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=200&auto=format&fit=crop"
                     }
                 ]
             }
@@ -192,6 +192,7 @@ function FlightPricingContent() {
                         fees={flightData.price.fees}
                         currency={flightData.price.currency}
                         onProceed={handleBooking}
+                        travelerDetails={travelerDetails}
                     />
                 </div>
             </main>
