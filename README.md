@@ -25,6 +25,10 @@ This is a [Next.js](https://nextjs.org) project showcasing an interactive 3D sce
     - Detailed itinerary confirmation.
     - Price breakdown (Base fare, Taxes, Fees).
     - Carbon emissions (CO2) display.
+- **User Dashboard**:
+    - Comprehensive analytics interface with Sidebar and Chart.
+    - Interactive slider to view different feature sets (Users, Trends, Activity).
+    - Built with Recharts and GSAP for smooth data visualization and transitions.
 - **Modern UI**: Built with [shadcn/ui](https://ui.shadcn.com/) and Tailwind CSS, featuring glassmorphism and smooth transitions.
 - **API Documentation**: See [API_DOCS.md](API_DOCS.md) for expected backend integration details.
 
