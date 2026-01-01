@@ -6,6 +6,7 @@ import { gsap } from "gsap"
 import { ScrollTrigger } from "gsap/ScrollTrigger"
 import Link from "next/link"
 import DashboardInterface from "./dashboard-interface"
+import { LayoutGrid } from "lucide-react"
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -150,13 +151,13 @@ export default function FeaturesDetail() {
         <div ref={sectionRef} className="py-8 md:py-16 overflow-hidden">
             <div className="mx-auto">
                 <div >
-                    <div className="container mx-auto px-4 md:px-0">
-                        <h1 ref={headingRef} className="text-4xl text-left font-bold tracking-tight sm:text-5xl text-foreground">
-                            Not everything powerful <br /> has to look complicated
+                    <div className="container flex flex-col items-center justify-center mx-auto px-4 md:px-0">
+                        <h1 ref={headingRef} className="text-4xl text-center font-bold tracking-tight sm:text-5xl text-foreground">
+                            Experience the World with Thrive <br />
                         </h1>
-                        <p ref={textRef} className="mt-4 text-lg text-muted-foreground text-left max-w-2xl">
-                            Explore the key features that make our platform a game-changer for businesses of all sizes.
-                            Experience a seamless dashboard that puts you in control.
+                        <i className="text-muted-foreground">CEO: Edna Kemboi</i>
+                        <p ref={textRef} className="mt-4 text-lg text-muted-foreground text-center max-w-2xl">
+                            Your gateway to seamless travel experiences. From flight bookings to custom itineraries, we handle the details so you can focus on the journey.
                         </p>
                     </div>
 
@@ -169,7 +170,7 @@ export default function FeaturesDetail() {
                                     ? "text-primary border-b-2 border-primary"
                                     : "text-muted-foreground hover:text-foreground"}`}
                             >
-                                {tab.title}
+                                {tab.id === 1 ? <LayoutGrid className="w-5 h-5" /> : tab.title}
                             </button>
                         ))}
                     </div>
@@ -213,7 +214,7 @@ export default function FeaturesDetail() {
                                         }}
                                     >
                                         <div className={`
-                        relative w-[95vw] md:w-[85vw] max-w-[1400px] h-full mx-auto 
+                        relative w-full px-2 md:px-4 h-full mx-auto 
                         rounded-xl border border-border bg-background shadow-2xl overflow-hidden
                         ${isActive ? 'ring-1 ring-ring/10' : ''}
                     `}>

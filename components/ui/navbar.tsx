@@ -1,5 +1,6 @@
 "use client"
 
+import { useAuth } from "@/lib/auth_context";
 import React, { useState } from 'react'
 import Link from 'next/link'
 import {
@@ -85,7 +86,7 @@ function MobileNav({ links }: MobileNavProps) {
 // --- Main Navbar Component ---
 
 export default function Navbar() {
-    const [isLoggedIn, setIsLoggedIn] = useState(true)
+    // const [isLoggedIn, setIsLoggedIn] = useState(true)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [notifications, setNotifications] = useState<Notification[]>([
         {
@@ -110,6 +111,10 @@ export default function Navbar() {
             read: true
         }
     ])
+
+    const { isAuthenticated, user, logout, loading } = useAuth();
+    if (loading) return null;
+
 
     const unreadCount = notifications.filter(n => !n.read).length
     const recentNotifications = notifications.slice(0, 3)
@@ -176,7 +181,7 @@ export default function Navbar() {
                     {/* Right Side Actions */}
                     <div className="flex items-center gap-4">
                         {/* Auth Toggle (Demo purpose) */}
-                        <div className="hidden lg:flex items-center space-x-2 mr-4 bg-white/5 px-3 py-1 rounded-full border border-white/5">
+                        {/* <div className="hidden lg:flex items-center space-x-2 mr-4 bg-white/5 px-3 py-1 rounded-full border border-white/5">
                             <Switch
                                 id="auth-mode"
                                 checked={isLoggedIn}
@@ -185,9 +190,9 @@ export default function Navbar() {
                             <Label htmlFor="auth-mode" className="text-xs text-white/60 cursor-pointer">
                                 {isLoggedIn ? 'User Mode' : 'Guest Mode'}
                             </Label>
-                        </div>
+                        </div> */}
 
-                        {isLoggedIn ? (
+                        {isAuthenticated ? (
                             <>
                                 {/* Notification Bell */}
                                 <DropdownMenu>
@@ -260,7 +265,12 @@ export default function Navbar() {
                                             <span>Settings</span>
                                         </DropdownMenuItem>
                                         <DropdownMenuSeparator className="bg-white/10" />
-                                        <DropdownMenuItem className="focus:bg-white/5 cursor-pointer text-red-400 focus:text-red-400">
+                                        <DropdownMenuItem
+                                            onSelect={(e) => {
+                                                e.preventDefault();
+                                                logout();
+                                            }}
+                                            className="focus:bg-white/5 cursor-pointer text-red-400 focus:text-red-400">
                                             <LogOut className="mr-2 h-4 w-4" />
                                             <span>Log out</span>
                                         </DropdownMenuItem>
@@ -268,18 +278,20 @@ export default function Navbar() {
                                 </DropdownMenu>
                             </>
                         ) : (
-                            <Link href="/sign-in">
-                                <Button className="bg-[#88734C] hover:bg-[#7a6540] text-white">
-                                    Sign In
-                                </Button>
-                            </Link>
-                        )}
-                        {!isLoggedIn && (
-                            <Link href="/sign-up">
-                                <Button className="bg-white text-black hover:bg-neutral-200">
-                                    Get Started
-                                </Button>
-                            </Link>
+                            <>
+                                <Link href="/sign-in">
+                                    <Button className="bg-[#88734C] hover:bg-[#7a6540] text-white">
+                                        Sign In
+                                    </Button>
+                                </Link>
+
+
+                                <Link href="/sign-up">
+                                    <Button className="bg-white text-black hover:bg-neutral-200">
+                                        Get Started
+                                    </Button>
+                                </Link>
+                            </>
                         )}
 
                         {/* Mobile Menu Toggle */}

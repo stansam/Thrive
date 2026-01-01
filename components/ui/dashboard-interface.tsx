@@ -1,5 +1,7 @@
 "use client"
 
+import { logout } from "@/lib/auth";
+import { useEffect, useState } from "react";
 import {
     Activity,
     CreditCard,
@@ -45,62 +47,116 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
-const data = [
-    {
-        name: "Jan",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Feb",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Mar",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Apr",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "May",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Jun",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Jul",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Aug",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Sep",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Oct",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Nov",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-    {
-        name: "Dec",
-        total: Math.floor(Math.random() * 5000) + 1000,
-    },
-]
-
 export default function DashboardInterface() {
+    const [mounted, setMounted] = useState(false);
+    const [data, setData] = useState<Array<{ name: string; total: number }>>([]);
+
+    useEffect(() => {
+        // Generate chart data only on client side to prevent hydration mismatch
+        setData([
+            {
+                name: "Jan",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Feb",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Mar",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Apr",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "May",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Jun",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Jul",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Aug",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Sep",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Oct",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Nov",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+            {
+                name: "Dec",
+                total: Math.floor(Math.random() * 5000) + 1000,
+            },
+        ]);
+        setMounted(true);
+    }, []);
+
+    // Prevent hydration mismatch by not rendering interactive components until mounted
+    if (!mounted) {
+        return (
+            <div className="flex h-full w-full flex-col bg-muted/20 md:flex-row overflow-hidden">
+                {/* Sidebar Skeleton */}
+                <aside className="hidden w-64 flex-col border-r bg-background md:flex h-full shrink-0">
+                    <div className="flex h-14 items-center border-b px-6">
+                        <div className="flex items-center gap-2 font-semibold">
+                            <LayoutDashboard className="h-6 w-6" />
+                            <span>Thrive Agency</span>
+                        </div>
+                    </div>
+                    <div className="flex-1 overflow-auto py-4">
+                        <div className="px-4 space-y-2">
+                            <div className="h-10 bg-muted rounded-lg animate-pulse" />
+                            <div className="h-10 bg-muted/50 rounded-lg animate-pulse" />
+                            <div className="h-10 bg-muted/50 rounded-lg animate-pulse" />
+                            <div className="h-10 bg-muted/50 rounded-lg animate-pulse" />
+                            <div className="h-10 bg-muted/50 rounded-lg animate-pulse" />
+                        </div>
+                    </div>
+                </aside>
+
+                {/* Main Content Skeleton */}
+                <div className="flex flex-1 flex-col overflow-hidden">
+                    <header className="flex h-14 items-center gap-4 border-b bg-background px-6 lg:h-[60px]">
+                        <div className="w-full flex-1">
+                            <div className="h-10 w-1/3 bg-muted rounded-md animate-pulse" />
+                        </div>
+                        <div className="h-10 w-10 bg-muted rounded-full animate-pulse" />
+                    </header>
+                    <main className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 md:gap-8 md:p-8">
+                        <div className="h-8 w-48 bg-muted rounded animate-pulse" />
+                        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="h-32 bg-muted rounded-lg animate-pulse" />
+                            ))}
+                        </div>
+                        <div className="grid gap-4 md:gap-8 lg:grid-cols-7">
+                            <div className="col-span-4 h-96 bg-muted rounded-lg animate-pulse" />
+                            <div className="col-span-3 h-96 bg-muted rounded-lg animate-pulse" />
+                        </div>
+                    </main>
+                </div>
+            </div>
+        );
+    }
     return (
-        <div className="flex h-full min-h-[800px] w-full flex-col bg-muted/20 md:flex-row">
+        <div className="flex h-full w-full flex-col bg-muted/20 md:flex-row overflow-hidden">
             {/* Sidebar */}
-            <aside className="hidden w-64 flex-col border-r bg-background md:flex">
+            <aside className="hidden w-64 flex-col border-r bg-background md:flex h-full shrink-0">
                 <div className="flex h-14 items-center border-b px-6">
                     <Link href="/" className="flex items-center gap-2 font-semibold">
                         <LayoutDashboard className="h-6 w-6" />
@@ -226,7 +282,7 @@ export default function DashboardInterface() {
                             <DropdownMenuItem>Settings</DropdownMenuItem>
                             <DropdownMenuItem>Support</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>Logout</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={logout}>Logout</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </header>

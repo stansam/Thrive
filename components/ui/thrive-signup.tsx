@@ -290,7 +290,7 @@ const SignUpCard = () => {
                                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                                     placeholder="John Doe"
                                     required
-                                    className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-200 w-full"
+                                    className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-900 w-full"
                                 />
                             </div>
 
@@ -302,7 +302,7 @@ const SignUpCard = () => {
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     placeholder="john@example.com"
                                     required
-                                    className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-200 w-full"
+                                    className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-900 w-full"
                                 />
                             </div>
 

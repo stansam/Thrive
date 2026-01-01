@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from "react";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Utils function to combine class names
@@ -51,6 +51,25 @@ const Input = React.forwardRef<
 });
 Input.displayName = "Input";
 
+// Alert Component
+const Alert = ({ children, variant = "error" }: { children: React.ReactNode; variant?: "error" | "success" }) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={cn(
+                "flex items-start gap-2 p-3 rounded-lg text-sm",
+                variant === "error" && "bg-red-500/10 text-red-400 border border-red-500/20",
+                variant === "success" && "bg-green-500/10 text-green-400 border border-green-500/20"
+            )}
+        >
+            <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">{children}</div>
+        </motion.div>
+    );
+};
+
 // DotMap Component
 type RoutePoint = {
     x: number;
@@ -62,7 +81,6 @@ const DotMap = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-    // Set up routes that will animate across the map
     const routes: { start: RoutePoint; end: RoutePoint; color: string }[] = [
         {
             start: { x: 100, y: 150, delay: 0 },
@@ -86,34 +104,24 @@ const DotMap = () => {
         },
     ];
 
-    // Create dots for the world map
     const generateDots = (width: number, height: number) => {
         const dots = [];
         const gap = 12;
         const dotRadius = 1;
 
-        // Create a dot grid pattern with random opacity
         for (let x = 0; x < width; x += gap) {
             for (let y = 0; y < height; y += gap) {
-                // Shape the dots to form a world map silhouette
-                // This is a simplified approach - adjust to create a more accurate map
                 const isInMapShape =
-                    // North America
                     ((x < width * 0.25 && x > width * 0.05) &&
                         (y < height * 0.4 && y > height * 0.1)) ||
-                    // South America
                     ((x < width * 0.25 && x > width * 0.15) &&
                         (y < height * 0.8 && y > height * 0.4)) ||
-                    // Europe
                     ((x < width * 0.45 && x > width * 0.3) &&
                         (y < height * 0.35 && y > height * 0.15)) ||
-                    // Africa
                     ((x < width * 0.5 && x > width * 0.35) &&
                         (y < height * 0.65 && y > height * 0.35)) ||
-                    // Asia
                     ((x < width * 0.7 && x > width * 0.45) &&
                         (y < height * 0.5 && y > height * 0.1)) ||
-                    // Australia
                     ((x < width * 0.8 && x > width * 0.65) &&
                         (y < height * 0.8 && y > height * 0.6));
 
@@ -158,12 +166,10 @@ const DotMap = () => {
         let animationFrameId: number;
         let startTime = Date.now();
 
-        // Draw background dots
         function drawDots() {
             if (!ctx) return;
             ctx.clearRect(0, 0, dimensions.width, dimensions.height);
 
-            // Draw the dots
             dots.forEach(dot => {
                 ctx.beginPath();
                 ctx.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
@@ -172,22 +178,20 @@ const DotMap = () => {
             });
         }
 
-        // Draw animated routes
         function drawRoutes() {
             if (!ctx) return;
-            const currentTime = (Date.now() - startTime) / 1000; // Time in seconds
+            const currentTime = (Date.now() - startTime) / 1000;
 
             routes.forEach(route => {
                 const elapsed = currentTime - route.start.delay;
                 if (elapsed <= 0) return;
 
-                const duration = 3; // Animation duration in seconds
+                const duration = 3;
                 const progress = Math.min(elapsed / duration, 1);
 
                 const x = route.start.x + (route.end.x - route.start.x) * progress;
                 const y = route.start.y + (route.end.y - route.start.y) * progress;
 
-                // Draw the route line
                 ctx.beginPath();
                 ctx.moveTo(route.start.x, route.start.y);
                 ctx.lineTo(x, y);
@@ -195,25 +199,21 @@ const DotMap = () => {
                 ctx.lineWidth = 1.5;
                 ctx.stroke();
 
-                // Draw the start point
                 ctx.beginPath();
                 ctx.arc(route.start.x, route.start.y, 3, 0, Math.PI * 2);
                 ctx.fillStyle = route.color;
                 ctx.fill();
 
-                // Draw the moving point
                 ctx.beginPath();
                 ctx.arc(x, y, 3, 0, Math.PI * 2);
                 ctx.fillStyle = "#60a5fa";
                 ctx.fill();
 
-                // Add glow effect to the moving point
                 ctx.beginPath();
                 ctx.arc(x, y, 6, 0, Math.PI * 2);
                 ctx.fillStyle = "rgba(96, 165, 250, 0.3)";
                 ctx.fill();
 
-                // If the route is complete, draw the end point
                 if (progress === 1) {
                     ctx.beginPath();
                     ctx.arc(route.end.x, route.end.y, 3, 0, Math.PI * 2);
@@ -223,14 +223,12 @@ const DotMap = () => {
             });
         }
 
-        // Animation loop
         function animate() {
             drawDots();
             drawRoutes();
 
-            // If all routes are complete, restart the animation
             const currentTime = (Date.now() - startTime) / 1000;
-            if (currentTime > 15) { // Reset after 15 seconds
+            if (currentTime > 15) {
                 startTime = Date.now();
             }
 
@@ -249,15 +247,164 @@ const DotMap = () => {
     );
 };
 
+// API Configuration
+const API_BASE_URL = 'http://127.0.0.1:5000/api/auth';
+
+// API Service
+const authAPI = {
+    login: async (email: string, password: string, rememberMe: boolean = false) => {
+        const response = await fetch(`${API_BASE_URL}/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password, rememberMe }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Login failed');
+        }
+
+        return data;
+    },
+
+    googleLogin: async (idToken: string) => {
+        const response = await fetch(`${API_BASE_URL}/google`, {
+            method: 'POST',
+            // credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idToken }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Google login failed');
+        }
+
+        return data;
+    }
+};
+
 // SignInCard Component
 const SignInCard = () => {
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [rememberMe, setRememberMe] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    const handleEmailLogin = async () => {
+        setError(null);
+        setSuccess(null);
+        setIsLoading(true);
+
+        try {
+            const response = await authAPI.login(email, password, rememberMe);
+
+            // Store tokens in memory (you can change this to use cookies or other storage methods)
+            const tokens = {
+                accessToken: response.data.tokens.accessToken,
+                refreshToken: response.data.tokens.refreshToken,
+                user: response.data.user
+            };
+
+            // Store in localStorage for demonstration
+            localStorage.setItem('accessToken', tokens.accessToken);
+            localStorage.setItem('refreshToken', tokens.refreshToken);
+            localStorage.setItem('user', JSON.stringify(tokens.user));
+
+            setSuccess(response.message || 'Login successful! Redirecting...');
+
+            // Redirect after successful login
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1500);
+
+        } catch (err: any) {
+            setError(err.message || 'An error occurred during login');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        setError(null);
+        setSuccess(null);
+
+        try {
+            if (typeof window.google === 'undefined') {
+                throw new Error('Google Sign-In SDK not loaded. Please refresh and try again.');
+            }
+
+            // Create a temporary container for the Google button
+            const buttonContainer = document.createElement('div');
+            buttonContainer.id = 'google-signin-button';
+            document.body.appendChild(buttonContainer);
+
+            window.google.accounts.id.initialize({
+                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!!,
+                callback: async (response: any) => {
+                    setIsLoading(true);
+                    try {
+                        const result = await authAPI.googleLogin(response.credential);
+
+                        localStorage.setItem('accessToken', result.data.tokens.accessToken);
+                        localStorage.setItem('refreshToken', result.data.tokens.refreshToken);
+                        localStorage.setItem('user', JSON.stringify(result.data.user));
+
+                        setSuccess(result.message || 'Google login successful! Redirecting...');
+
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 1500);
+
+                    } catch (err: any) {
+                        setError(err.message || 'Google authentication failed');
+                    } finally {
+                        setIsLoading(false);
+                        buttonContainer.remove();
+                    }
+                }
+            });
+
+            window.google.accounts.id.renderButton(
+                buttonContainer,
+                {
+                    theme: 'filled_blue',
+                    size: 'large',
+                    width: 400
+                }
+            );
+
+            // Programmatically click the rendered Google button
+            setTimeout(() => {
+                const googleBtn = buttonContainer.querySelector('div[role="button"]') as HTMLElement;
+                if (googleBtn) {
+                    googleBtn.click();
+                }
+            }, 100);
+
+        } catch (err: any) {
+            setError(err.message || 'Google login failed');
+        }
+    };
+
+    const handleKeyPress = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && !isLoading) {
+            handleEmailLogin();
+        }
+    };
 
     return (
-        <div className="flex w-full h-full items-center justify-center">
+        <div className="flex w-full h-full items-center justify-center p-4">
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -269,7 +416,6 @@ const SignInCard = () => {
                     <div className="absolute inset-0 bg-gradient-to-br from-[#0f1120] to-[#151929]">
                         <DotMap />
 
-                        {/* Logo and text overlay */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center p-8 z-10">
                             <motion.div
                                 initial={{ opacity: 0, y: -20 }}
@@ -311,10 +457,24 @@ const SignInCard = () => {
                         <h1 className="text-2xl md:text-3xl font-bold mb-1">Welcome back</h1>
                         <p className="text-gray-400 mb-8">Sign in to your account</p>
 
+                        <AnimatePresence mode="wait">
+                            {error && (
+                                <div className="mb-4">
+                                    <Alert variant="error">{error}</Alert>
+                                </div>
+                            )}
+                            {success && (
+                                <div className="mb-4">
+                                    <Alert variant="success">{success}</Alert>
+                                </div>
+                            )}
+                        </AnimatePresence>
+
                         <div className="mb-6">
                             <button
-                                className="w-full flex items-center justify-center gap-2 bg-[#13151f] border border-[#2a2d3a] rounded-lg p-3 hover:bg-[#1a1d2b] transition-all duration-300 cursor-pointer"
-                                onClick={() => console.log("Google sign-in")}
+                                className="w-full flex items-center justify-center gap-2 bg-[#13151f] border border-[#2a2d3a] rounded-lg p-3 hover:bg-[#1a1d2b] transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={handleGoogleLogin}
+                                disabled={isLoading}
                             >
                                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                                     <path
@@ -336,7 +496,7 @@ const SignInCard = () => {
                                     />
                                     <path fill="#EA4335" d="M1 1h22v22H1z" fillOpacity="0" />
                                 </svg>
-                                <span>Login with Google</span>
+                                <span>{isLoading ? 'Connecting...' : 'Login with Google'}</span>
                             </button>
                         </div>
 
@@ -349,7 +509,7 @@ const SignInCard = () => {
                             </div>
                         </div>
 
-                        <form className="space-y-5">
+                        <div className="space-y-5">
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
                                     Email <span className="text-blue-500">*</span>
@@ -359,9 +519,11 @@ const SignInCard = () => {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
+                                    onKeyPress={handleKeyPress}
                                     placeholder="Enter your email address"
                                     required
-                                    className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-200 w-full"
+                                    disabled={isLoading}
+                                    className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-900 w-full"
                                 />
                             </div>
 
@@ -375,43 +537,59 @@ const SignInCard = () => {
                                         type={isPasswordVisible ? "text" : "password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
+                                        onKeyPress={handleKeyPress}
                                         placeholder="Enter your password"
                                         required
-                                        className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-200 w-full pr-10"
+                                        disabled={isLoading}
+                                        className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-900 w-full pr-10"
                                     />
                                     <button
                                         type="button"
                                         className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-300 cursor-pointer"
                                         onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                                        disabled={isLoading}
                                     >
                                         {isPasswordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
                                     </button>
                                 </div>
                             </div>
 
+                            <div className="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="rememberMe"
+                                    checked={rememberMe}
+                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                    disabled={isLoading}
+                                    className="h-4 w-4 rounded border-[#2a2d3a] bg-[#13151f] text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                                />
+                                <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-300 cursor-pointer">
+                                    Remember me for 30 days
+                                </label>
+                            </div>
+
                             <motion.div
-                                whileHover={{ scale: 1.01 }}
-                                whileTap={{ scale: 0.98 }}
-                                onHoverStart={() => setIsHovered(true)}
+                                whileHover={{ scale: isLoading ? 1 : 1.01 }}
+                                whileTap={{ scale: isLoading ? 1 : 0.98 }}
+                                onHoverStart={() => !isLoading && setIsHovered(true)}
                                 onHoverEnd={() => setIsHovered(false)}
                                 className="pt-2"
                             >
                                 <Button
-                                    type="submit"
+                                    type="button"
+                                    onClick={handleEmailLogin}
+                                    disabled={isLoading}
                                     className={cn(
                                         "w-full bg-gradient-to-r relative overflow-hidden from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-2 rounded-lg transition-all duration-300 cursor-pointer",
-                                        isHovered ? "shadow-lg shadow-blue-500/25" : ""
+                                        isHovered && !isLoading ? "shadow-lg shadow-blue-500/25" : "",
+                                        isLoading ? "opacity-70" : ""
                                     )}
-                                    onClick={(e) => {
-                                        e.preventDefault();
-                                        console.log("Sign in attempt with:", { email, password });
-                                    }}
                                 >
                                     <span className="flex items-center justify-center">
-                                        Sign in
-                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                        {isLoading ? 'Signing in...' : 'Sign in'}
+                                        {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
                                     </span>
-                                    {isHovered && (
+                                    {isHovered && !isLoading && (
                                         <motion.span
                                             initial={{ left: "-100%" }}
                                             animate={{ left: "100%" }}
@@ -424,11 +602,18 @@ const SignInCard = () => {
                             </motion.div>
 
                             <div className="text-center mt-6">
-                                <a href="#" className="text-blue-500 hover:text-blue-400 text-sm transition-colors">
+                                <a
+                                    href="#"
+                                    className="text-blue-500 hover:text-blue-400 text-sm transition-colors"
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        alert('Password reset functionality coming soon!');
+                                    }}
+                                >
                                     Forgot password?
                                 </a>
                             </div>
-                        </form>
+                        </div>
                     </motion.div>
                 </div>
             </motion.div>

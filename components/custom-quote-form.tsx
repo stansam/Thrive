@@ -35,9 +35,15 @@ export function CustomQuoteForm({ className }: { className?: string }) {
 
                 {/* Extra Row: Number of People (Conditional) */}
                 {clientType === 'group' && (
-                    <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2">
-                        <Label htmlFor="people" className="text-xs text-neutral-400">Number of People</Label>
-                        <Input id="people" type="number" placeholder="Total group size" className="bg-black/50 border-white/10" />
+                    <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-top-2 grid grid-cols-2 gap-4">
+                        <div>
+                            <Label htmlFor="peopleAdults" className="text-xs text-neutral-400">Number of Adults</Label>
+                            <Input id="peopleAdults" type="number" placeholder="No of Adults" className="bg-black/50 border-white/10" />
+                        </div>
+                        <div>
+                            <Label htmlFor="peopleChildren" className="text-xs text-neutral-400">Number of Children</Label>
+                            <Input id="peopleChildren" type="number" placeholder="No of Children" className="bg-black/50 border-white/10" />
+                        </div>
                     </div>
                 )}
 
