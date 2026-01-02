@@ -177,22 +177,22 @@ export default function DashboardInterface() {
                             className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                         >
                             <Users className="h-4 w-4" />
-                            Users
+                            Profile
                         </Link>
                         <Link
                             href="#"
                             className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                         >
                             <CreditCard className="h-4 w-4" />
-                            Billing
+                            Subscriptions
                         </Link>
-                        <Link
+                        {/* <Link
                             href="#"
                             className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
                         >
                             <PieChart className="h-4 w-4" />
                             Analytics
-                        </Link>
+                        </Link> */}
                         <Link
                             href="#"
                             className="flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary"
@@ -243,14 +243,14 @@ export default function DashboardInterface() {
                                     href="#"
                                     className="text-muted-foreground hover:text-foreground"
                                 >
-                                    Users
+                                    Profile
                                 </Link>
-                                <Link
+                                {/* <Link
                                     href="#"
                                     className="text-muted-foreground hover:text-foreground"
                                 >
                                     Analytics
-                                </Link>
+                                </Link> */}
                             </nav>
                         </SheetContent>
                     </Sheet>

@@ -13,39 +13,39 @@ gsap.registerPlugin(ScrollTrigger)
 const dashboardTabs = [
     {
         id: 1,
-        title: "Analytics",
+        title: "",
         src: "", // No image for the first tab as it's the live component
         alt: "Dashboard Analytics Overview",
         type: "component"
     },
     {
         id: 2,
-        title: "Users Management",
+        title: "My Bookings",
         src: "https://images.unsplash.com/photo-1556155092-490a1ba16284?q=80&w=2670&auto=format&fit=crop",
-        alt: "Dashboard User Management",
+        alt: "Dashboard User Bookings Management",
         type: "image"
     },
     {
         id: 3,
-        title: "Insights & Reports",
+        title: "My Trips & Tours",
         src: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2670&auto=format&fit=crop",
-        alt: "Dashboard Reports",
+        alt: "Dashboard My Trips & Tours",
         type: "image"
     },
     {
         id: 4,
-        title: "Activity",
+        title: "Contact Us",
         src: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop",
-        alt: "Dashboard Activity",
+        alt: "Dashboard Contact Us",
         type: "image"
     },
-    {
-        id: 5,
-        title: "Trends",
-        src: "https://images.unsplash.com/photo-1543286386-2e659306cd6c?q=80&w=2670&auto=format&fit=crop",
-        alt: "Dashboard Trends",
-        type: "image"
-    }
+    // {
+    //     id: 5,
+    //     title: "Trends",
+    //     src: "https://images.unsplash.com/photo-1543286386-2e659306cd6c?q=80&w=2670&auto=format&fit=crop",
+    //     alt: "Dashboard Trends",
+    //     type: "image"
+    // }
 ]
 
 export default function FeaturesDetail() {
