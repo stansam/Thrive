@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import { SWRConfig } from 'swr';
 import DashboardLayout, { type DashboardTab } from '@/components/dashboard/DashboardLayout';
-import DashboardTab from '@/components/dashboard/tabs/DashboardTab';
+import DashboardTabComponent from '@/components/dashboard/tabs/DashboardTab';
 import MyBookingsTab from '@/components/dashboard/tabs/MyBookingsTab';
 import MyTripsTab from '@/components/dashboard/tabs/MyTripsTab';
 import ContactTab from '@/components/dashboard/tabs/ContactTab';
@@ -22,7 +22,7 @@ export default function DashboardPage() {
     const renderTabContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <DashboardTab />;
+                return <DashboardTabComponent />;
             case 'bookings':
                 return <MyBookingsTab />;
             case 'trips':
@@ -36,7 +36,7 @@ export default function DashboardPage() {
             case 'settings':
                 return <SettingsSection />;
             default:
-                return <DashboardTab />;
+                return <DashboardTabComponent />;
         }
     };
 

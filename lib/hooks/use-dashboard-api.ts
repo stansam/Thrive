@@ -3,6 +3,7 @@
  * Uses SWR for caching, revalidation, and optimistic updates
  */
 
+import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
 import { dashboardAPI } from '../api-client';
 import type {
@@ -220,14 +221,38 @@ export function useSubscriptions() {
     };
 
     return {
+        subscriptions: data?.data as SubscriptionsResponse | undefined,
         currentSubscription: data?.data?.currentSubscription,
         availableTiers: data?.data?.availableTiers,
         isLoading,
         isError: !!error,
         error,
-        upgradeSubscription,
         refresh,
     };
+}
+
+export function useUpgradeSubscription() {
+    const [isUpgrading, setIsUpgrading] = useState(false);
+
+    const upgradeSubscription = async (upgradeData: SubscriptionUpgradeData) => {
+        setIsUpgrading(true);
+        try {
+            const response = await dashboardAPI.upgradeSubscription(upgradeData);
+
+            // Refresh subscriptions and profile data
+            mutate('subscriptions');
+            mutate('user-profile');
+            mutate('dashboard-summary');
+
+            return response.data;
+        } catch (error) {
+            throw error;
+        } finally {
+            setIsUpgrading(false);
+        }
+    };
+
+    return { upgradeSubscription, isUpgrading };
 }
 
 // ============================================================================

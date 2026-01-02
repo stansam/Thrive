@@ -14,6 +14,7 @@ import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YA
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
+import type { DashboardStats, RecentBooking } from '@/lib/types/dashboard';
 
 interface StatCardProps {
     title: string;
@@ -46,7 +47,7 @@ function StatCard({ title, value, description, icon: Icon, trend }: StatCardProp
     );
 }
 
-function RecentBookingItem({ booking }: { booking: any }) {
+function RecentBookingItem({ booking }: { booking: RecentBooking }) {
     const statusColors: Record<string, string> = {
         confirmed: 'bg-green-500',
         pending: 'bg-yellow-500',
@@ -136,7 +137,15 @@ export default function DashboardTab() {
         );
     }
 
-    const stats = summary?.stats || {};
+
+    const stats: DashboardStats = summary?.stats || {
+        totalBookings: 0,
+        confirmedBookings: 0,
+        totalSpent: 0,
+        upcomingBookings: 0,
+        activeTrips: 0,
+        unreadNotifications: 0
+    };
     const chartData = summary?.chartData || [];
     const recentBookings = summary?.recentBookings || [];
 
@@ -255,7 +264,7 @@ export default function DashboardTab() {
                     <CardContent>
                         <div className="space-y-3">
                             {recentBookings.length > 0 ? (
-                                recentBookings.slice(0, 5).map((booking: any) => (
+                                recentBookings.slice(0, 5).map((booking: RecentBooking) => (
                                     <RecentBookingItem key={booking.id} booking={booking} />
                                 ))
                             ) : (

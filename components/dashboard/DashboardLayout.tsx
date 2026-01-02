@@ -35,6 +35,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { logout } from '@/lib/auth';
 import { useProfile, useNotifications } from '@/lib/hooks/use-dashboard-api';
+import type { Notification } from '@/lib/types/dashboard';
 
 // Tab configuration
 export type DashboardTab = 'dashboard' | 'bookings' | 'trips' | 'contact' | 'profile' | 'subscriptions' | 'settings';
@@ -94,8 +95,8 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                     if (isMobile) setMobileMenuOpen(false);
                 }}
                 className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${isActive
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:text-primary hover:bg-muted'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:text-primary hover:bg-muted'
                     } ${isMobile ? 'text-lg' : 'text-sm font-medium'}`}
             >
                 <Icon className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
@@ -233,7 +234,7 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             {notifications && notifications.length > 0 ? (
-                                notifications.map((notification) => (
+                                notifications.map((notification: Notification) => (
                                     <DropdownMenuItem key={notification.id} className="flex flex-col items-start p-3">
                                         <div className="font-medium">{notification.title}</div>
                                         <div className="text-sm text-muted-foreground line-clamp-2">

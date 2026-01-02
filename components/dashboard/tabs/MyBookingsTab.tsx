@@ -59,6 +59,11 @@ function BookingCard({ booking, onViewDetails, onCancel }: {
 
     const canCancel = booking.status === 'confirmed' || booking.status === 'pending';
 
+    const bookingType =
+        booking?.bookingType
+            ? booking.bookingType.charAt(0).toUpperCase() + booking.bookingType.slice(1)
+            : "General";
+
     return (
         <Card className="hover:shadow-md transition-shadow">
             <CardHeader>
@@ -66,7 +71,7 @@ function BookingCard({ booking, onViewDetails, onCancel }: {
                     <div>
                         <CardTitle className="text-lg">{booking.bookingReference}</CardTitle>
                         <CardDescription className="mt-1">
-                            {booking.bookingType.charAt(0).toUpperCase() + booking.bookingType.slice(1)} Booking
+                            {bookingType} Booking
                         </CardDescription>
                     </div>
                     <Badge variant="outline" className="capitalize">
@@ -109,7 +114,7 @@ function BookingCard({ booking, onViewDetails, onCancel }: {
                     {/* Price */}
                     <div className="flex items-center gap-2 text-sm font-semibold">
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
-                        <span>${booking.totalPrice.toFixed(2)}</span>
+                        <span>${booking?.totalPrice != null ? booking.totalPrice.toFixed(2) : "0.00"}</span>
                     </div>
 
                     {/* Actions */}
@@ -381,25 +386,25 @@ export default function MyBookingsTab() {
                                 <div className="space-y-2 border rounded p-3">
                                     <div className="flex justify-between text-sm">
                                         <span>Base Price</span>
-                                        <span>${selectedBooking.basePrice.toFixed(2)}</span>
+                                        <span>${selectedBooking?.basePrice != null ? selectedBooking.basePrice.toFixed(2) : "0.00"}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span>Service Fee</span>
-                                        <span>${selectedBooking.serviceFee.toFixed(2)}</span>
+                                        <span>${selectedBooking?.serviceFee != null ? selectedBooking.serviceFee.toFixed(2) : "0.00"}</span>
                                     </div>
                                     <div className="flex justify-between text-sm">
                                         <span>Taxes</span>
-                                        <span>${selectedBooking.taxes.toFixed(2)}</span>
+                                        <span>${selectedBooking?.taxes != null ? selectedBooking.taxes.toFixed(2) : "0.00"}</span>
                                     </div>
                                     {selectedBooking.discount > 0 && (
                                         <div className="flex justify-between text-sm text-green-600">
                                             <span>Discount</span>
-                                            <span>-${selectedBooking.discount.toFixed(2)}</span>
+                                            <span>-${selectedBooking?.discount != null ? selectedBooking.discount.toFixed(2) : "0.00"}</span>
                                         </div>
                                     )}
                                     <div className="flex justify-between font-bold text-lg pt-2 border-t">
                                         <span>Total</span>
-                                        <span>${selectedBooking.totalPrice.toFixed(2)}</span>
+                                        <span>${selectedBooking?.totalPrice != null ? selectedBooking.totalPrice.toFixed(2) : "0.00"}</span>
                                     </div>
                                 </div>
                             </div>

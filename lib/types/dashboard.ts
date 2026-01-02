@@ -253,12 +253,12 @@ export interface ContactFormData {
 
 export interface Notification {
     id: string;
-    type: string;
+    // type: string;
     title: string;
     message: string;
     isRead: boolean;
     createdAt: string;
-    readAt?: string;
+    // readAt?: string;
 }
 
 export interface NotificationsResponse {
