@@ -222,7 +222,7 @@ export default function AboutUsSection() {
                             >
                                 {/* Changed to CEO Woman image */}
                                 <img
-                                    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1000&auto=format&fit=crop"
+                                    src="/edna.jpeg"
                                     alt="Thrive CEO"
                                     className="w-full h-full object-cover aspect-[3/4]"
                                 />
