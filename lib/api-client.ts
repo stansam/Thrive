@@ -8,7 +8,7 @@ import type { APIResponse, APIError } from './types/dashboard';
 
 // Create axios instance with default config
 const apiClient = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000',
     headers: {
         'Content-Type': 'application/json',
     },
