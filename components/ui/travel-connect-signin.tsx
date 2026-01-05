@@ -248,7 +248,8 @@ const DotMap = () => {
 };
 
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL_RAW = process.env.NEXT_PUBLIC_API_BASE_URL;
+const API_BASE_URL = `${API_BASE_URL_RAW}/auth`;
 
 // API Service
 const authAPI = {
