@@ -77,61 +77,61 @@ apiClient.interceptors.response.use(
 export const dashboardAPI = {
     // Dashboard Summary
     getSummary: () => {
-        return apiClient.get<any, APIResponse>('/api/client/dashboard/summary');
+        return apiClient.get<any, APIResponse>('/client/dashboard/summary');
     },
 
     // Profile Management
     getProfile: () => {
-        return apiClient.get<any, APIResponse>('/api/client/dashboard/profile');
+        return apiClient.get<any, APIResponse>('/client/dashboard/profile');
     },
 
     updateProfile: (data: any) => {
-        return apiClient.put<any, APIResponse>('/api/client/dashboard/profile', data);
+        return apiClient.put<any, APIResponse>('/client/dashboard/profile', data);
     },
 
     // Subscriptions
     getSubscriptions: () => {
-        return apiClient.get<any, APIResponse>('/api/client/dashboard/subscriptions');
+        return apiClient.get<any, APIResponse>('/client/dashboard/subscriptions');
     },
 
     upgradeSubscription: (data: { tier: string; paymentMethodId?: string }) => {
-        return apiClient.post<any, APIResponse>('/api/client/dashboard/subscriptions/upgrade', data);
+        return apiClient.post<any, APIResponse>('/client/dashboard/subscriptions/upgrade', data);
     },
 
     // Bookings
     getBookings: (params?: any) => {
-        return apiClient.get<any, APIResponse>('/api/client/dashboard/bookings', { params });
+        return apiClient.get<any, APIResponse>('/client/dashboard/bookings', { params });
     },
 
     getBookingDetails: (bookingId: string) => {
-        return apiClient.get<any, APIResponse>(`/api/client/dashboard/bookings/${bookingId}`);
+        return apiClient.get<any, APIResponse>(`/client/dashboard/bookings/${bookingId}`);
     },
 
     cancelBooking: (bookingId: string, data: { reason: string; requestRefund?: boolean }) => {
-        return apiClient.post<any, APIResponse>(`/api/client/dashboard/bookings/${bookingId}/cancel`, data);
+        return apiClient.post<any, APIResponse>(`/client/dashboard/bookings/${bookingId}/cancel`, data);
     },
 
     // Trips
     getTrips: (params?: any) => {
-        return apiClient.get<any, APIResponse>('/api/client/dashboard/trips', { params });
+        return apiClient.get<any, APIResponse>('/client/dashboard/trips', { params });
     },
 
     getTripDetails: (tripId: string) => {
-        return apiClient.get<any, APIResponse>(`/api/client/dashboard/trips/${tripId}`);
+        return apiClient.get<any, APIResponse>(`/client/dashboard/trips/${tripId}`);
     },
 
     // Contact
     submitContact: (data: any) => {
-        return apiClient.post<any, APIResponse>('/api/client/dashboard/contact', data);
+        return apiClient.post<any, APIResponse>('/client/dashboard/contact', data);
     },
 
     // Notifications
     getNotifications: (params?: any) => {
-        return apiClient.get<any, APIResponse>('/api/client/dashboard/notifications', { params });
+        return apiClient.get<any, APIResponse>('/client/dashboard/notifications', { params });
     },
 
     markNotificationRead: (notificationId: string) => {
-        return apiClient.put<any, APIResponse>(`/api/client/dashboard/notifications/${notificationId}/read`);
+        return apiClient.put<any, APIResponse>(`/client/dashboard/notifications/${notificationId}/read`);
     },
 };
 
