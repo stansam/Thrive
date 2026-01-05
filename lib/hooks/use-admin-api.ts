@@ -6,7 +6,7 @@
 import useSWR from 'swr';
 import { useState } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
 // Fetcher function with auth token
 async function fetcher(url: string) {
@@ -54,7 +54,7 @@ async function mutate(url: string, method: string, data?: any) {
 
 export function useAdminDashboard() {
     const { data, error, isLoading, mutate } = useSWR(
-        `${API_BASE}/api/admin/dashboard`,
+        `${API_BASE}/admin/dashboard`,
         fetcher
     );
 
@@ -72,7 +72,7 @@ export function useAdminDashboard() {
 export function useUsers(params: any = {}) {
     const queryString = new URLSearchParams(params).toString();
     const { data, error, isLoading, mutate } = useSWR(
-        `${API_BASE}/api/admin/users${queryString ? `?${queryString}` : ''}`,
+        `${API_BASE}/admin/users${queryString ? `?${queryString}` : ''}`,
         fetcher
     );
 
@@ -88,7 +88,7 @@ export function useUsers(params: any = {}) {
 
 export function useUser(userId: string | null) {
     const { data, error, isLoading, mutate } = useSWR(
-        userId ? `${API_BASE}/api/admin/users/${userId}` : null,
+        userId ? `${API_BASE}/admin/users/${userId}` : null,
         fetcher
     );
 
@@ -109,7 +109,7 @@ export function useUpdateUser() {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await mutate(`${API_BASE}/api/admin/users/${userId}`, 'PATCH', userData);
+            const result = await mutate(`${API_BASE}/admin/users/${userId}`, 'PATCH', userData);
             setIsLoading(false);
             return result;
         } catch (err: any) {
@@ -127,7 +127,7 @@ export function useUpdateUser() {
 export function useBookings(params: any = {}) {
     const queryString = new URLSearchParams(params).toString();
     const { data, error, isLoading, mutate } = useSWR(
-        `${API_BASE}/api/admin/bookings${queryString ? `?${queryString}` : ''}`,
+        `${API_BASE}/admin/bookings${queryString ? `?${queryString}` : ''}`,
         fetcher
     );
 
@@ -143,7 +143,7 @@ export function useBookings(params: any = {}) {
 
 export function useBooking(bookingId: string | null) {
     const { data, error, isLoading, mutate } = useSWR(
-        bookingId ? `${API_BASE}/api/admin/bookings/${bookingId}` : null,
+        bookingId ? `${API_BASE}/admin/bookings/${bookingId}` : null,
         fetcher
     );
 
@@ -164,7 +164,7 @@ export function useUpdateBooking() {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await mutate(`${API_BASE}/api/admin/bookings/${bookingId}`, 'PATCH', bookingData);
+            const result = await mutate(`${API_BASE}/admin/bookings/${bookingId}`, 'PATCH', bookingData);
             setIsLoading(false);
             return result;
         } catch (err: any) {
@@ -183,7 +183,7 @@ export function useUpdateBooking() {
 export function useQuotes(params: any = {}) {
     const queryString = new URLSearchParams(params).toString();
     const { data, error, isLoading, mutate } = useSWR(
-        `${API_BASE}/api/admin/quotes${queryString ? `?${queryString}` : ''}`,
+        `${API_BASE}/admin/quotes${queryString ? `?${queryString}` : ''}`,
         fetcher
     );
 
@@ -200,7 +200,7 @@ export function useQuotes(params: any = {}) {
 export function usePackages(params: any = {}) {
     const queryString = new URLSearchParams(params).toString();
     const { data, error, isLoading, mutate } = useSWR(
-        `${API_BASE}/api/admin/packages${queryString ? `?${queryString}` : ''}`,
+        `${API_BASE}/admin/packages${queryString ? `?${queryString}` : ''}`,
         fetcher
     );
 
@@ -217,7 +217,7 @@ export function usePackages(params: any = {}) {
 export function usePayments(params: any = {}) {
     const queryString = new URLSearchParams(params).toString();
     const { data, error, isLoading, mutate } = useSWR(
-        `${API_BASE}/api/admin/payments${queryString ? `?${queryString}` : ''}`,
+        `${API_BASE}/admin/payments${queryString ? `?${queryString}` : ''}`,
         fetcher
     );
 
@@ -234,7 +234,7 @@ export function usePayments(params: any = {}) {
 export function useContactMessages(params: any = {}) {
     const queryString = new URLSearchParams(params).toString();
     const { data, error, isLoading, mutate } = useSWR(
-        `${API_BASE}/api/admin/contacts${queryString ? `?${queryString}` : ''}`,
+        `${API_BASE}/admin/contacts${queryString ? `?${queryString}` : ''}`,
         fetcher
     );
 
