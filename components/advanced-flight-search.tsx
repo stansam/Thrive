@@ -17,8 +17,11 @@ import {
     Armchair,
     DollarSign,
     Clock,
-    Ban
+    Ban,
+    Building // Added Building
 } from 'lucide-react';
+import { flightService } from '@/services/flight-service';
+import { useDebounce } from '@/lib/hooks/use-debounce';
 import { cn } from '@/lib/utils';
 import DataTableFilter, { FilterOption } from '@/components/ui/data-table-filter';
 import {
@@ -65,6 +68,80 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
     const [maxPrice, setMaxPrice] = React.useState('');
     const [includedAirlines, setIncludedAirlines] = React.useState('');
 
+    // Search State
+    const [originResults, setOriginResults] = React.useState<any[]>([]);
+    const [destResults, setDestResults] = React.useState<any[]>([]);
+    const [isSearchingOrigin, setIsSearchingOrigin] = React.useState(false);
+    const [isSearchingDest, setIsSearchingDest] = React.useState(false);
+
+    const debouncedOrigin = useDebounce(origin, 300);
+    const debouncedDest = useDebounce(destination, 300);
+
+    // Helper to extract code from "City (CODE)"
+    const extractCode = (str: string) => {
+        const match = str.match(/\(([^)]+)\)/);
+        return match ? match[1] : str;
+    }
+
+    // Effect for Origin Search
+    React.useEffect(() => {
+        const searchOrigin = async () => {
+            if (debouncedOrigin.length < 2) {
+                setOriginResults([]);
+                return;
+            }
+
+            setIsSearchingOrigin(true);
+            try {
+                const response = await flightService.searchLocations(debouncedOrigin);
+                if (response.success) {
+                    setOriginResults(response.data);
+                }
+            } catch (error) {
+                console.error("Failed to search origin:", error);
+                setOriginResults([]);
+            } finally {
+                setIsSearchingOrigin(false);
+            }
+        }
+        searchOrigin();
+    }, [debouncedOrigin]);
+
+    // Effect for Destination Search
+    React.useEffect(() => {
+        const searchDest = async () => {
+            if (debouncedDest.length < 2) {
+                setDestResults([]);
+                return;
+            }
+
+            setIsSearchingDest(true);
+            try {
+                const response = await flightService.searchLocations(debouncedDest);
+                if (response.success) {
+                    setDestResults(response.data);
+                }
+            } catch (error) {
+                console.error("Failed to search destination:", error);
+                setDestResults([]);
+            } finally {
+                setIsSearchingDest(false);
+            }
+        }
+        searchDest();
+    }, [debouncedDest]);
+
+    const handleSelectLocation = (location: any, type: 'origin' | 'destination') => {
+        const displayValue = `${location.name} (${location.iataCode})`;
+        if (type === 'origin') {
+            setOrigin(displayValue);
+            setShowOriginDropdown(false);
+        } else {
+            setDestination(displayValue);
+            setShowDestDropdown(false);
+        }
+    }
+
     // Hydrate from URL
     React.useEffect(() => {
         const originParam = searchParams.get('origin');
@@ -84,8 +161,8 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
 
     const handleSearch = () => {
         const params = new URLSearchParams();
-        if (origin) params.append('origin', origin);
-        if (destination) params.append('destination', destination);
+        if (origin) params.append('origin', extractCode(origin));
+        if (destination) params.append('destination', extractCode(destination));
         if (departureDate) params.append('departureDate', departureDate.toISOString().split('T')[0]);
         params.append('adults', travelers.toString());
 
@@ -94,17 +171,6 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
 
         router.push(`/flights/results?${params.toString()}`);
     }
-
-    // Dropdown Mock Data
-    const airports = [
-        'San Francisco (SFO)',
-        'New York (JFK)',
-        'London (LHR)',
-        'Tokyo (HND)',
-        'Dubai (DXB)',
-        'Paris (CDG)',
-        'Singapore (SIN)',
-    ];
 
     const [showOriginDropdown, setShowOriginDropdown] = React.useState(false)
     const [showDestDropdown, setShowDestDropdown] = React.useState(false)
@@ -135,21 +201,34 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                         </div>
                         {showOriginDropdown && (
                             <div className="absolute top-full left-0 w-full mt-1 bg-neutral-900/95 backdrop-blur-md border border-white/10 rounded-md z-50 overflow-hidden shadow-xl max-h-60 overflow-y-auto">
-                                {airports.filter(a => a.toLowerCase().includes(origin.toLowerCase())).map((airport) => (
-                                    <div
-                                        key={airport}
-                                        className="p-2.5 text-sm text-neutral-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors"
-                                        onClick={() => {
-                                            setOrigin(airport)
-                                            setShowOriginDropdown(false)
-                                        }}
-                                    >
-                                        {airport}
-                                    </div>
-                                ))}
-                                {airports.filter(a => a.toLowerCase().includes(origin.toLowerCase())).length === 0 && (
-                                    <div className="p-3 text-xs text-neutral-500 text-center">No airports found</div>
-                                )}
+                                {isSearchingOrigin ? (
+                                    <div className="p-3 text-xs text-neutral-500 text-center">Searching...</div>
+                                ) : originResults.length > 0 ? (
+                                    originResults.map((location, idx) => (
+                                        <div
+                                            key={`${location.iataCode}-${idx}`}
+                                            className="p-2.5 text-sm text-neutral-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors flex items-center gap-2"
+                                            onClick={() => handleSelectLocation(location, 'origin')}
+                                        >
+                                            {location.type === 'CITY' ? (
+                                                <Building className="h-4 w-4 text-neutral-400" />
+                                            ) : (
+                                                <Plane className="h-4 w-4 text-neutral-400" />
+                                            )}
+                                            <div>
+                                                <span className="font-medium">{location.name}</span>
+                                                <span className="text-neutral-400 ml-1">
+                                                    ({location.iataCode})
+                                                </span>
+                                                <div className="text-xs text-neutral-500">
+                                                    {location.city !== location.name ? `${location.city}, ` : ''}{location.country}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : debouncedOrigin.length >= 2 ? (
+                                    <div className="p-3 text-xs text-neutral-500 text-center">No results found</div>
+                                ) : null}
                             </div>
                         )}
                     </div>
@@ -173,21 +252,34 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                         </div>
                         {showDestDropdown && (
                             <div className="absolute top-full left-0 w-full mt-1 bg-neutral-900/95 backdrop-blur-md border border-white/10 rounded-md z-50 overflow-hidden shadow-xl max-h-60 overflow-y-auto">
-                                {airports.filter(a => a.toLowerCase().includes(destination.toLowerCase())).map((airport) => (
-                                    <div
-                                        key={airport}
-                                        className="p-2.5 text-sm text-neutral-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors"
-                                        onClick={() => {
-                                            setDestination(airport)
-                                            setShowDestDropdown(false)
-                                        }}
-                                    >
-                                        {airport}
-                                    </div>
-                                ))}
-                                {airports.filter(a => a.toLowerCase().includes(destination.toLowerCase())).length === 0 && (
-                                    <div className="p-3 text-xs text-neutral-500 text-center">No airports found</div>
-                                )}
+                                {isSearchingDest ? (
+                                    <div className="p-3 text-xs text-neutral-500 text-center">Searching...</div>
+                                ) : destResults.length > 0 ? (
+                                    destResults.map((location, idx) => (
+                                        <div
+                                            key={`${location.iataCode}-${idx}`}
+                                            className="p-2.5 text-sm text-neutral-300 hover:bg-white/10 hover:text-white cursor-pointer transition-colors flex items-center gap-2"
+                                            onClick={() => handleSelectLocation(location, 'destination')}
+                                        >
+                                            {location.type === 'CITY' ? (
+                                                <Building className="h-4 w-4 text-neutral-400" />
+                                            ) : (
+                                                <Plane className="h-4 w-4 text-neutral-400" />
+                                            )}
+                                            <div>
+                                                <span className="font-medium">{location.name}</span>
+                                                <span className="text-neutral-400 ml-1">
+                                                    ({location.iataCode})
+                                                </span>
+                                                <div className="text-xs text-neutral-500">
+                                                    {location.city !== location.name ? `${location.city}, ` : ''}{location.country}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : debouncedDest.length >= 2 ? (
+                                    <div className="p-3 text-xs text-neutral-500 text-center">No results found</div>
+                                ) : null}
                             </div>
                         )}
                     </div>
