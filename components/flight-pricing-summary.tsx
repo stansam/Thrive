@@ -31,7 +31,7 @@ export function FlightPricingSummary({
     const total = baseFare + taxes + fees;
 
     return (
-        <Card className="bg-neutral-900/50 border-neutral-800 text-white sticky top-24">
+        <Card className="bg-neutral-900/50 border-neutral-800 text-white">
             <CardHeader>
                 <CardTitle className="text-xl">Price Summary</CardTitle>
             </CardHeader>

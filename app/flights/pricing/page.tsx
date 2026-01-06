@@ -11,77 +11,32 @@ import { FlightItineraryConfirmation } from '@/components/flight-itinerary-confi
 import { FlightPricingSummary } from '@/components/flight-pricing-summary';
 import { FlightEmissionsDisplay } from '@/components/flight-emissions-display';
 import { TravelerDetailsForm, TravelerData } from '@/components/traveler-details-form';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
-// Mock Data Structure matching flight_offers_price_api.txt structure partially for visualization
-const MOCK_PRICING_DATA = {
-    "1": {
-        id: "1",
-        price: {
-            base: 1150.00,
-            taxes: 120.50,
-            fees: 40.00,
-            currency: "USD"
-        },
-        emissions: {
-            co2: "145 kg",
-            comparison: "-12% vs avg"
-        },
-        itineraries: [
-            {
-                segments: [
-                    {
-                        id: "seg_1",
-                        departure: { iataCode: "SFO", at: "2025-06-25T10:15:00", terminal: "I" },
-                        arrival: { iataCode: "JFK", at: "2025-06-25T21:30:00", terminal: "4" },
-                        carrierCode: "EK",
-                        number: "204",
-                        aircraft: { code: "777" },
-                        duration: "PT5H15M",
-                        airlineName: "Emirates",
-                        airlineLogo: "https://images.unsplash.com/photo-1570710891163-6d3b5c47248b?q=80&w=200&auto=format&fit=crop"
-                    }
-                ]
-            }
-        ]
-    },
-    "2": { // Qatar
-        id: "2",
-        price: {
-            base: 1300.00,
-            taxes: 110.00,
-            fees: 40.00,
-            currency: "USD"
-        },
-        emissions: {
-            co2: "320 kg",
-            comparison: "+5% vs avg"
-        },
-        itineraries: [
-            {
-                segments: [
-                    {
-                        id: "seg_2a",
-                        departure: { iataCode: "SFO", at: "2025-06-25T14:00:00" },
-                        arrival: { iataCode: "DXB", at: "2025-06-26T06:45:00" },
-                        carrierCode: "QR",
-                        number: "738",
-                        duration: "PT15H45M",
-                        airlineName: "Qatar Airways",
-                        airlineLogo: "https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=200&auto=format&fit=crop"
-                    }
-                ]
-            }
-        ]
-    }
-};
+import { useRouter } from 'next/navigation';
+import { flightService } from '@/services/flight-service';
+import { FlightOffer, TravelerInfo, CreateBookingRequest } from '@/lib/types/flight';
+import { FlightPaymentModal } from '@/components/flight-payment-modal';
 
 function FlightPricingContent() {
     const searchParams = useSearchParams();
-    const flightId = searchParams.get('id');
-    const [flightData, setFlightData] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
+    const router = useRouter();
+    const flightId = searchParams.get('id'); // We might use this for validation
 
-    // Traveler State
+    const [selectedOffer, setSelectedOffer] = useState<FlightOffer | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [priceConfirmed, setPriceConfirmed] = useState(false);
+    const [dictionaries, setDictionaries] = useState<any>({}); // State to hold dictionaries
+
+    // Traveler State - Array for multiple travelers support in future, currently 1
     const [travelerDetails, setTravelerDetails] = useState<TravelerData>({
         firstName: "",
         lastName: "",
@@ -94,110 +49,220 @@ function FlightPricingContent() {
         nationality: ""
     });
     const [errors, setErrors] = useState<Partial<Record<keyof TravelerData, string>>>({});
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showExpiredDialog, setShowExpiredDialog] = useState(false);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Simulate API Fetch
-        const timer = setTimeout(() => {
-            if (flightId && MOCK_PRICING_DATA[flightId as keyof typeof MOCK_PRICING_DATA]) {
-                setFlightData(MOCK_PRICING_DATA[flightId as keyof typeof MOCK_PRICING_DATA]);
-            } else {
-                // Default fallback if ID not found or generic
-                setFlightData(MOCK_PRICING_DATA["1"]);
+        const init = async () => {
+            if (typeof window !== 'undefined') {
+                const storedDictionaries = sessionStorage.getItem('flightDictionaries');
+                if (storedDictionaries) {
+                    setDictionaries(JSON.parse(storedDictionaries));
+                }
+
+                const storedOffer = sessionStorage.getItem('selectedFlightOffer');
+
+                if (storedOffer) {
+                    const offer: FlightOffer = JSON.parse(storedOffer);
+                    setSelectedOffer(offer);
+
+                    try {
+                        // Confirm price with backend
+                        const response = await flightService.confirmPrice([offer]);
+                        if (response.success && response.data.flightOffers && response.data.flightOffers.length > 0) {
+                            setSelectedOffer(response.data.flightOffers[0]);
+                            setPriceConfirmed(true);
+                        } else {
+                            console.error("Price confirmation failed");
+                            setApiError("Could not confirm flight price. It may no longer be available.");
+                        }
+                    } catch (err: any) {
+                        console.error("Price confirmation failed:", JSON.stringify(err));
+
+                        // Handle specific validation/expiry errors
+                        const isExpiryError =
+                            err?.error === 'VALIDATION_ERROR' ||
+                            err?.errorCode === 'VALIDATION_ERROR' ||
+                            err?.details?.errors?.some((e: any) => e.code === 4926 || e.detail?.includes('No fare applicable'));
+
+                        if (isExpiryError) {
+                            setShowExpiredDialog(true);
+                        } else {
+                            const message = err?.message || "Failed to confirm flight price.";
+                            setApiError(message);
+                            // Only alert if not showing expired dialog, to avoid double popup feels
+                            // alert(message); 
+                        }
+                    } finally {
+                        setLoading(false);
+                    }
+                } else {
+                    // No flight selected, redirect
+                    router.push('/flights/results');
+                }
             }
-            setLoading(false);
-        }, 1000);
-        return () => clearTimeout(timer);
-    }, [flightId]);
+        };
+        init();
+    }, [router]);
 
     const validateForm = () => {
-        const newErrors: Partial<Record<keyof TravelerData, string>> = {};
-        if (!travelerDetails.firstName) newErrors.firstName = "First Name is required";
-        if (!travelerDetails.lastName) newErrors.lastName = "Last Name is required";
-        if (!travelerDetails.dateOfBirth) newErrors.dateOfBirth = "Date of Birth is required";
-        if (!travelerDetails.email) newErrors.email = "Email is required";
-        if (!travelerDetails.phone) newErrors.phone = "Phone is required";
+        const newErrors: any = {};
+        if (!travelerDetails.firstName) newErrors.firstName = "Required";
+        if (!travelerDetails.lastName) newErrors.lastName = "Required";
+        if (!travelerDetails.email) newErrors.email = "Required";
+        else if (!/\S+@\S+\.\S+/.test(travelerDetails.email)) newErrors.email = "Invalid email";
+        if (!travelerDetails.phone) newErrors.phone = "Required";
+        if (!travelerDetails.dateOfBirth) newErrors.dateOfBirth = "Required";
+        // Basic passport validation if fields are present or required logic needs to be stricter
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleBooking = () => {
-        if (validateForm()) {
-            console.log("Booking Data:", { flightId, travelerDetails });
-            alert(`Booking confirmed for ${travelerDetails.firstName} ${travelerDetails.lastName}! Proceeding to payment...`);
-            // In real app: router.push('/flight/payment')
-        } else {
-            // Scroll to error or alert
-            alert("Please fill in all required traveler details.");
+    const handleProceedToPayment = () => {
+        if (validateForm() && priceConfirmed) {
+            setShowPaymentModal(true);
         }
     };
 
-    if (loading) {
+    if (loading || !selectedOffer) {
         return (
-            <div className="min-h-screen bg-black text-white flex items-center justify-center space-y-4">
-                <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="min-h-screen bg-black text-white flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-white"></div>
             </div>
         );
     }
 
-    if (!flightData) return <div>Flight not found.</div>;
+    // Flatten segments for display - currently handling first itinerary only (one-way)
+    const segments = selectedOffer.itineraries[0].segments.map(seg => ({
+        ...seg,
+        airlineName: dictionaries?.carriers?.[seg.carrierCode] || seg.carrierCode,
+        // Placeholder logo or map from dictionary if available
+        airlineLogo: `https://pic.al/8.png`
+    }));
 
-    const segments = flightData.itineraries?.[0]?.segments || [];
+    const baseFare = parseFloat(selectedOffer.price.base || selectedOffer.price.total);
+    const totalPrice = parseFloat(selectedOffer.price.total);
+    const taxes = selectedOffer.price.base ? (totalPrice - baseFare) : 0;
+    const fees = selectedOffer.price.fees?.reduce((acc, fee) => acc + parseFloat(fee.amount), 0) || 0;
 
     return (
         <div className="min-h-screen bg-black text-white font-sans flex flex-col">
             <Navbar />
 
             {/* Header */}
-            <div className="bg-neutral-900 border-b border-neutral-800 pt-24 pb-6">
-                <div className="max-w-7xl mx-auto px-4">
-                    <Link href="/flights/results" className="text-sm text-neutral-400 hover:text-white flex items-center gap-1 mb-4 w-fit">
-                        <ArrowLeft className="h-4 w-4" /> Back to Results
+            <div className="bg-neutral-900 border-b border-neutral-800 py-6 px-4 pt-24">
+                <div className="max-w-7xl mx-auto flex items-center gap-4">
+                    <Link href="/flights/results">
+                        <Button variant="ghost" size="icon" className="text-neutral-400 hover:text-white">
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
                     </Link>
-                    <h1 className="text-2xl font-bold">Review your trip</h1>
-                    <div className="flex items-center gap-2 text-sm text-neutral-400 mt-1">
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
-                        <span>Free cancellation within 24 hours</span>
+                    <div>
+                        <h1 className="text-2xl font-bold">Review Your Trip</h1>
+                        <p className="text-neutral-400 text-sm">Check details and enter traveler information</p>
                     </div>
                 </div>
             </div>
 
             <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left Column: Itinerary & Details */}
+                {/* Left Column: Itinerary & Traveler Form */}
                 <div className="lg:col-span-2 space-y-6">
+                    {/* Itinerary Display */}
                     <FlightItineraryConfirmation segments={segments} />
 
-                    <FlightEmissionsDisplay
-                        co2Amount={flightData.emissions.co2}
-                        comparison={flightData.emissions.comparison}
-                    />
-
-                    {/* Traveler Details Form */}
+                    {/* Traveler Form */}
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold">Traveler Information</h2>
-                        <TravelerDetailsForm
-                            id="1"
-                            travelerType="Adult"
-                            onChange={setTravelerDetails}
-                            errors={errors}
-                        />
+                        <div className="bg-neutral-900/50 border border-neutral-800 rounded-xl p-6">
+                            <TravelerDetailsForm
+                                id="1"
+                                travelerType="Adult"
+                                onChange={setTravelerDetails}
+                                errors={errors}
+                            />
+                        </div>
                     </div>
                 </div>
 
                 {/* Right Column: Price Summary */}
-                <div className="lg:col-span-1">
-                    <FlightPricingSummary
-                        baseFare={flightData.price.base}
-                        taxes={flightData.price.taxes}
-                        fees={flightData.price.fees}
-                        currency={flightData.price.currency}
-                        onProceed={handleBooking}
-                        travelerDetails={travelerDetails}
-                    />
+                <div className="lg:col-span-1 relative">
+                    <div className="lg:sticky lg:top-24 space-y-6">
+                        <FlightPricingSummary
+                            baseFare={baseFare}
+                            taxes={taxes}
+                            fees={fees}
+                            currency={selectedOffer.price.currency}
+                            travelerDetails={travelerDetails}
+                            onProceed={handleProceedToPayment}
+                        />
+
+                        <FlightEmissionsDisplay
+                            co2Amount={selectedOffer.travelerPricings[0]?.fareDetailsBySegment[0]?.segmentMeasures?.co2Emissions?.cabin
+                                ? `${selectedOffer.travelerPricings[0].fareDetailsBySegment[0].segmentMeasures.co2Emissions.cabin} kg`
+                                : "N/A"}
+                            comparison="-10% vs avg"
+                        />
+                    </div>
                 </div>
             </main>
 
+            <FlightPaymentModal
+                isOpen={showPaymentModal}
+                onClose={() => setShowPaymentModal(false)}
+                amount={totalPrice}
+                currency={selectedOffer.price.currency}
+                flightOffer={selectedOffer}
+                travelers={[
+                    {
+                        id: '1',
+                        travelerType: 'ADULT',
+                        firstName: travelerDetails.firstName,
+                        lastName: travelerDetails.lastName,
+                        dateOfBirth: travelerDetails.dateOfBirth,
+                        gender: (travelerDetails.gender.toUpperCase() as any) || 'MALE',
+                        email: travelerDetails.email,
+                        phone: { countryCode: '1', number: travelerDetails.phone }
+                    }
+                ]}
+            />
+
             <FooterSection />
+            {/* Expired Fare Dialog */}
+            <AlertDialog open={showExpiredDialog} onOpenChange={setShowExpiredDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Price No Longer Available</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            The price for this flight has changed or is no longer available.
+                            We will take you back to search results to find updated options.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => router.push('/flights/results')}>
+                            Back to Search
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Generic Error Dialog */}
+            <AlertDialog open={!!apiError} onOpenChange={(open) => !open && setApiError(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Something went wrong</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {apiError}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogAction onClick={() => setApiError(null)}>
+                            Close
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

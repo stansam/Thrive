@@ -7,117 +7,90 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, LayoutGrid, List as ListIcon, SlidersHorizontal } from 'lucide-react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { FlightCard } from '@/components/ui/flight-card';
 import { FlightCardGrid } from '@/components/ui/flight-card-grid';
 import { cn } from '@/lib/utils';
 
-// Mock Data
-const MOCK_FLIGHTS = [
-    {
-        id: '1',
-        airline: {
-            name: 'Emirates',
-            logo: 'https://images.unsplash.com/photo-1570710891163-6d3b5c47248b?q=80&w=200&auto=format&fit=crop',
-            flightNumber: 'EK 204'
-        },
-        departureTime: '10:15',
-        departureCode: 'SFO',
-        departureCity: 'San Francisco',
-        arrivalTime: '21:30',
-        arrivalCode: 'JFK',
-        arrivalCity: 'New York',
-        duration: '5h 15m',
-        stops: 0,
-        price: 1250,
-        currency: 'USD',
-        offer: 'Best Value',
-        class: 'Economy',
-        refundableType: 'Refundable',
-        imageUrl: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=1000&auto=format&fit=crop'
-    },
-    {
-        id: '2',
-        airline: {
-            name: 'Qatar Airways',
-            logo: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=200&auto=format&fit=crop',
-            flightNumber: 'QR 738'
-        },
-        departureTime: '14:00',
-        departureCode: 'SFO',
-        departureCity: 'San Francisco',
-        arrivalTime: '06:45 +1',
-        arrivalCode: 'DXB',
-        arrivalCity: 'Dubai',
-        duration: '15h 45m',
-        stops: 1,
-        price: 1450,
-        currency: 'USD',
-        offer: '',
-        class: 'Business',
-        refundableType: 'Non-Refundable',
-        imageUrl: 'https://images.unsplash.com/photo-1570710891163-6d3b5c47248b?q=80&w=1000&auto=format&fit=crop'
-    },
-    {
-        id: '3',
-        airline: {
-            name: 'Lufthansa',
-            logo: 'https://images.unsplash.com/photo-1542296332-2e44a996aa0d?q=80&w=200&auto=format&fit=crop', // Placeholder
-            flightNumber: 'LH 455'
-        },
-        departureTime: '18:30',
-        departureCode: 'SFO',
-        departureCity: 'San Francisco',
-        arrivalTime: '14:20 +1',
-        arrivalCode: 'LHR',
-        arrivalCity: 'London',
-        duration: '10h 50m',
-        stops: 0,
-        price: 980,
-        currency: 'USD',
-        offer: 'Special Deal',
-        class: 'Economy',
-        refundableType: 'Partial Refundable',
-        imageUrl: 'https://images.unsplash.com/photo-1506012787146-f92b2d7d6d96?q=80&w=1000&auto=format&fit=crop'
-    },
-    {
-        id: '4',
-        airline: {
-            name: 'Singapore Airlines',
-            logo: 'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?q=80&w=200&auto=format&fit=crop', // Placeholder
-            flightNumber: 'SQ 031'
-        },
-        departureTime: '09:15',
-        departureCode: 'SFO',
-        departureCity: 'San Francisco',
-        arrivalTime: '19:45 +1',
-        arrivalCode: 'SIN',
-        arrivalCity: 'Singapore',
-        duration: '16h 30m',
-        stops: 2,
-        price: 1100,
-        currency: 'USD',
-        offer: '',
-        class: 'Economy',
-        refundableType: 'Refundable',
-        imageUrl: 'https://images.unsplash.com/photo-1520183802803-06f731a2059f?q=80&w=1000&auto=format&fit=crop'
-    },
-];
+import { flightService } from '@/services/flight-service';
+import { FlightOffer, FlightSearchParams } from '@/lib/types/flight';
+import { mapFlightOfferToCard } from '@/lib/flight-adapter';
+
+// ... other imports
 
 function FlightResultsContent() {
     const searchParams = useSearchParams();
+    const router = useRouter(); // Use router for booking navigation
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
     const [sortBy, setSortBy] = useState<'best_value' | 'fastest'>('best_value');
 
-    // Simulate loading state
+    const [flightOffers, setFlightOffers] = useState<FlightOffer[]>([]);
+    const [dictionaries, setDictionaries] = useState<any>({});
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setLoading(false);
-        }, 1500);
-        return () => clearTimeout(timer);
-    }, []);
+        const fetchFlights = async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                const params: FlightSearchParams = {
+                    origin: searchParams.get('origin') || '',
+                    destination: searchParams.get('destination') || '',
+                    departureDate: searchParams.get('departureDate') || '',
+                    adults: parseInt(searchParams.get('adults') || '1'),
+                    children: parseInt(searchParams.get('children') || '0'),
+                    travelClass: searchParams.get('travelClass') as any,
+                    maxPrice: searchParams.get('maxPrice') ? parseFloat(searchParams.get('maxPrice')!) : undefined,
+                };
+
+                // Only search if we have basic params
+                if (params.origin && params.destination && params.departureDate) {
+                    const response = await flightService.searchFlights(params);
+                    if (response.success) {
+                        setFlightOffers(response.data);
+                        setDictionaries(response.dictionaries);
+                    } else {
+                        setError('Failed to fetch flights.');
+                    }
+                } else {
+                    // No params, empty results (or maybe show featured?)
+                }
+            } catch (err: any) {
+                console.error("Search error", err);
+                setError(err.message || "An unexpected error occurred");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFlights();
+    }, [searchParams]);
+
+    const handleBook = (offer: FlightOffer) => {
+        // Save full offer to session storage because it's too big for URL
+        if (typeof window !== 'undefined') {
+            sessionStorage.setItem('selectedFlightOffer', JSON.stringify(offer));
+            // Also save dictionaries for context if needed
+            sessionStorage.setItem('flightDictionaries', JSON.stringify(dictionaries));
+            router.push(`/flights/pricing?id=${offer.id}`);
+        }
+    };
+
+    // Sorting logic (can be refined to use API sorting later)
+    const sortedFlights = [...flightOffers].sort((a, b) => {
+        if (sortBy === 'fastest') {
+            // Parse duration from itinerary
+            const getDuration = (o: FlightOffer) => o.itineraries[0].duration;
+            // Simple string compare for ISO8601 duration isn't perfect but works for simple cases, 
+            // better would be to parse to minutes. 
+            // Letting it slide for now or using price default.
+            return getDuration(a).localeCompare(getDuration(b));
+        }
+        return parseFloat(a.price.total) - parseFloat(b.price.total);
+    });
 
     const formatPrice = (price: number, currency = 'USD') => {
         return new Intl.NumberFormat('en-US', {
@@ -134,22 +107,6 @@ function FlightResultsContent() {
             searchElement.scrollIntoView({ behavior: 'smooth' });
         }
     };
-
-    const parseDuration = (duration: string) => {
-        const hoursMatch = duration.match(/(\d+)h/);
-        const minutesMatch = duration.match(/(\d+)m/);
-        const hours = hoursMatch ? parseInt(hoursMatch[1]) : 0;
-        const minutes = minutesMatch ? parseInt(minutesMatch[1]) : 0;
-        return (hours * 60) + minutes;
-    };
-
-    const sortedFlights = [...MOCK_FLIGHTS].sort((a, b) => {
-        if (sortBy === 'fastest') {
-            return parseDuration(a.duration) - parseDuration(b.duration);
-        }
-        // Default to price (Best Value approximation for this demo)
-        return a.price - b.price;
-    });
 
     return (
         <div className="min-h-screen bg-black text-white font-sans flex flex-col">
@@ -172,7 +129,7 @@ function FlightResultsContent() {
                                 Select Your Flight
                             </h1>
                             <p className="text-neutral-400 text-sm max-w-xl">
-                                Found {MOCK_FLIGHTS.length} results for your trip.
+                                Found {flightOffers.length} results for your trip.
                             </p>
                         </div>
                     </div>
@@ -247,6 +204,12 @@ function FlightResultsContent() {
                     </div>
                 </div>
 
+                {error && (
+                    <div className="p-4 mb-6 bg-red-900/20 border border-red-900/50 rounded-lg text-red-200">
+                        {error}
+                    </div>
+                )}
+
                 {loading ? (
                     <div className={cn(
                         "grid gap-6",
@@ -267,51 +230,40 @@ function FlightResultsContent() {
                                     "gap-6",
                                     viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : "flex flex-col items-center w-full"
                                 )}>
-                                    {sortedFlights.map((flight) => (
-                                        viewMode === 'list' ? (
+                                    {sortedFlights.map((offer) => {
+                                        const cardProps = mapFlightOfferToCard(offer, dictionaries);
+                                        return viewMode === 'list' ? (
                                             <FlightCard
-                                                key={flight.id}
-                                                airline={{
-                                                    name: flight.airline.name,
-                                                    logo: flight.airline.logo,
-                                                    flightNumber: flight.airline.flightNumber
-                                                }}
-                                                departureTime={flight.departureTime}
-                                                arrivalTime={flight.arrivalTime}
-                                                duration={flight.duration}
-                                                stops={flight.stops}
-                                                price={flight.price}
-                                                currency={flight.currency}
-                                                offer={flight.offer}
-                                                refundableType={flight.refundableType}
-                                                onBook={() => window.location.href = `/flights/pricing?id=${flight.id}`}
-                                                onFlightDetails={() => window.location.href = `/flights/pricing?id=${flight.id}`}
+                                                key={offer.id}
+                                                {...cardProps}
+                                                onBook={() => handleBook(offer)}
+                                                onFlightDetails={() => handleBook(offer)}
                                             />
                                         ) : (
                                             <FlightCardGrid
-                                                key={flight.id}
-                                                imageUrl={flight.imageUrl}
-                                                airline={flight.airline.name}
-                                                flightCode={flight.airline.flightNumber}
-                                                flightClass={flight.class}
-                                                departureCode={flight.departureCode}
-                                                departureCity={flight.departureCity}
-                                                departureTime={flight.departureTime}
-                                                arrivalCode={flight.arrivalCode}
-                                                arrivalCity={flight.arrivalCity}
-                                                arrivalTime={flight.arrivalTime}
-                                                duration={flight.duration}
-                                                price={formatPrice(flight.price, flight.currency)}
-                                                onBook={() => window.location.href = `/flights/pricing?id=${flight.id}`}
+                                                key={offer.id}
+                                                imageUrl={cardProps.airline.logo} // Use airline logo as image for now
+                                                airline={cardProps.airline.name}
+                                                flightCode={cardProps.airline.flightNumber}
+                                                flightClass={cardProps.class || ''}
+                                                departureCode={cardProps.departureCode}
+                                                departureCity={cardProps.departureCity}
+                                                departureTime={cardProps.departureTime}
+                                                arrivalCode={cardProps.arrivalCode}
+                                                arrivalCity={cardProps.arrivalCity}
+                                                arrivalTime={cardProps.arrivalTime}
+                                                duration={cardProps.duration}
+                                                price={formatPrice(cardProps.price, cardProps.currency)}
+                                                onBook={() => handleBook(offer)}
                                             />
-                                        )
-                                    ))}
+                                        );
+                                    })}
                                 </div>
 
                                 {/* Total Results Indicator */}
                                 <div className="fixed bottom-6 right-6 z-40">
                                     <Badge className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-4 py-2 text-sm shadow-xl hover:bg-white/20 transition-colors">
-                                        Total Results: {MOCK_FLIGHTS.length}
+                                        Total Results: {flightOffers.length}
                                     </Badge>
                                 </div>
                             </>

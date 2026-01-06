@@ -43,7 +43,14 @@ const StopsOptions: FilterOption[] = [
 ];
 
 
+import { useRouter, useSearchParams } from 'next/navigation';
+
+// ... (keep imports)
+
 export function AdvancedFlightSearch({ className }: { className?: string }) {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
     // Core State
     const [origin, setOrigin] = React.useState('');
     const [destination, setDestination] = React.useState('');
@@ -57,6 +64,36 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
     const [selectedStops, setSelectedStops] = React.useState<string[]>([]);
     const [maxPrice, setMaxPrice] = React.useState('');
     const [includedAirlines, setIncludedAirlines] = React.useState('');
+
+    // Hydrate from URL
+    React.useEffect(() => {
+        const originParam = searchParams.get('origin');
+        const destParam = searchParams.get('destination');
+        const dateParam = searchParams.get('departureDate');
+        const adultsParam = searchParams.get('adults');
+        const cabinParam = searchParams.get('travelClass');
+        const maxPriceParam = searchParams.get('maxPrice');
+
+        if (originParam) setOrigin(originParam);
+        if (destParam) setDestination(destParam);
+        if (dateParam) setDepartureDate(new Date(dateParam));
+        if (adultsParam) setTravelers(parseInt(adultsParam));
+        if (cabinParam) setSelectedCabin([cabinParam]);
+        if (maxPriceParam) setMaxPrice(maxPriceParam);
+    }, [searchParams]);
+
+    const handleSearch = () => {
+        const params = new URLSearchParams();
+        if (origin) params.append('origin', origin);
+        if (destination) params.append('destination', destination);
+        if (departureDate) params.append('departureDate', departureDate.toISOString().split('T')[0]);
+        params.append('adults', travelers.toString());
+
+        if (selectedCabin.length > 0) params.append('travelClass', selectedCabin[0]);
+        if (maxPrice) params.append('maxPrice', maxPrice);
+
+        router.push(`/flights/results?${params.toString()}`);
+    }
 
     // Dropdown Mock Data
     const airports = [
@@ -204,7 +241,7 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                             </PopoverContent>
                         </Popover>
 
-                        <Button className="h-10 w-12 shrink-0 bg-white text-black hover:bg-neutral-200">
+                        <Button className="h-10 w-12 shrink-0 bg-white text-black hover:bg-neutral-200" onClick={handleSearch}>
                             <Search className="h-4 w-4" />
                         </Button>
                     </div>

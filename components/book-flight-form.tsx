@@ -8,20 +8,126 @@ import { Card } from "@/components/ui/card"
 import { MapPin, Minus, Plus, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { DatePicker } from "@/components/ui/date-picker"
+import { flightService } from "@/services/flight-service"
+import { useDebounce } from "@/lib/hooks/use-debounce"
+import { Plane, Building } from "lucide-react"
 
 export function BookFlightForm({ className }: { className?: string }) {
+    const router = useRouter()
     const [adults, setAdults] = React.useState(1)
     const [children, setChildren] = React.useState(0)
     const [date, setDate] = React.useState<Date | undefined>(new Date())
-
-    // Mock airports for dropdown
-    const airports = ["San Francisco (SFO)", "New York (JFK)", "London (LHR)", "Tokyo (HND)", "Dubai (DXB)"]
 
     const [showFromDropdown, setShowFromDropdown] = React.useState(false)
     const [showToDropdown, setShowToDropdown] = React.useState(false)
     const [fromValue, setFromValue] = React.useState("")
     const [toValue, setToValue] = React.useState("")
+
+    const [fromResults, setFromResults] = React.useState<any[]>([])
+    const [toResults, setToResults] = React.useState<any[]>([])
+    const [isSearchingFrom, setIsSearchingFrom] = React.useState(false)
+    const [isSearchingTo, setIsSearchingTo] = React.useState(false)
+
+    // Debounced search terms
+    const debouncedFromValue = useDebounce(fromValue, 300)
+    const debouncedToValue = useDebounce(toValue, 300)
+
+    // Effect for Origin Search
+    React.useEffect(() => {
+        const searchOrigin = async () => {
+            // Only search if length >= 2 and it's not a selected code (heuristic: contains ' (')
+            // Actually, we want to allow re-searching even if it looks like a code, unless it's the exact same string. 
+            // But simpler: if < 2 chars, clear results.
+            if (debouncedFromValue.length < 2) {
+                setFromResults([])
+                return
+            }
+
+            setIsSearchingFrom(true)
+            try {
+                const response = await flightService.searchLocations(debouncedFromValue)
+                if (response.success) {
+                    setFromResults(response.data)
+                }
+            } catch (error) {
+                console.error("Failed to search origin:", error)
+                setFromResults([])
+            } finally {
+                setIsSearchingFrom(false)
+            }
+        }
+
+        // Only search if the value doesn't look like a final selection "City (CODE)" 
+        // to avoid re-triggering on selection. 
+        // A simple check is if we just selected it, we might want to skip search.
+        // For now, let's just search. The API is fast.
+        searchOrigin()
+    }, [debouncedFromValue])
+
+    // Effect for Destination Search
+    React.useEffect(() => {
+        const searchDestination = async () => {
+            if (debouncedToValue.length < 2) {
+                setToResults([])
+                return
+            }
+
+            setIsSearchingTo(true)
+            try {
+                const response = await flightService.searchLocations(debouncedToValue)
+                if (response.success) {
+                    setToResults(response.data)
+                }
+            } catch (error) {
+                console.error("Failed to search destination:", error)
+                setToResults([])
+            } finally {
+                setIsSearchingTo(false)
+            }
+        }
+        searchDestination()
+    }, [debouncedToValue])
+
+    const extractCode = (str: string) => {
+        const match = str.match(/\(([^)]+)\)/);
+        return match ? match[1] : str;
+    }
+
+    const handleSelectLocation = (location: any, type: 'from' | 'to') => {
+        const displayValue = `${location.name} (${location.iataCode})`;
+        if (type === 'from') {
+            setFromValue(displayValue);
+            setShowFromDropdown(false);
+        } else {
+            setToValue(displayValue);
+            setShowToDropdown(false);
+        }
+    }
+
+    const handleSearch = () => {
+        const origin = extractCode(fromValue);
+        const destination = extractCode(toValue);
+
+        if (!origin || !destination) {
+            // In a real app, show error
+            return;
+        }
+
+        const params = new URLSearchParams();
+        params.append('origin', origin);
+        params.append('destination', destination);
+        if (date) {
+            params.append('departureDate', date.toISOString().split('T')[0]);
+        }
+        params.append('adults', adults.toString());
+        if (children > 0) {
+            params.append('children', children.toString());
+        }
+
+        router.push(`/flights/results?${params.toString()}`);
+    }
 
     return (
         <Card className={cn("w-[400px] p-6 bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-2xl", className)}>
@@ -48,19 +154,35 @@ export function BookFlightForm({ className }: { className?: string }) {
                             />
                         </div>
                         {showFromDropdown && (
-                            <div className="absolute top-full left-0 w-full mt-1 bg-neutral-900 border border-white/10 rounded-md z-50 overflow-hidden">
-                                {airports.filter(a => a.toLowerCase().includes(fromValue.toLowerCase())).map((airport) => (
-                                    <div
-                                        key={airport}
-                                        className="p-2 text-sm hover:bg-white/10 cursor-pointer"
-                                        onClick={() => {
-                                            setFromValue(airport)
-                                            setShowFromDropdown(false)
-                                        }}
-                                    >
-                                        {airport}
-                                    </div>
-                                ))}
+                            <div className="absolute top-full left-0 w-full mt-1 bg-neutral-900 border border-white/10 rounded-md z-50 overflow-hidden max-h-60 overflow-y-auto">
+                                {isSearchingFrom ? (
+                                    <div className="p-3 text-sm text-neutral-400 text-center">Searching...</div>
+                                ) : fromResults.length > 0 ? (
+                                    fromResults.map((location, idx) => (
+                                        <div
+                                            key={`${location.iataCode}-${idx}`}
+                                            className="p-2 text-sm hover:bg-white/10 cursor-pointer flex items-center gap-2"
+                                            onClick={() => handleSelectLocation(location, 'from')}
+                                        >
+                                            {location.type === 'CITY' ? (
+                                                <Building className="h-4 w-4 text-neutral-400" />
+                                            ) : (
+                                                <Plane className="h-4 w-4 text-neutral-400" />
+                                            )}
+                                            <div>
+                                                <span className="font-medium">{location.name}</span>
+                                                <span className="text-neutral-400 ml-1">
+                                                    ({location.iataCode})
+                                                </span>
+                                                <div className="text-xs text-neutral-500">
+                                                    {location.city !== location.name ? `${location.city}, ` : ''}{location.country}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : debouncedFromValue.length >= 2 ? (
+                                    <div className="p-3 text-sm text-neutral-400 text-center">No results found</div>
+                                ) : null}
                             </div>
                         )}
                     </div>
@@ -83,19 +205,35 @@ export function BookFlightForm({ className }: { className?: string }) {
                             />
                         </div>
                         {showToDropdown && (
-                            <div className="absolute top-full left-0 w-full mt-1 bg-neutral-900 border border-white/10 rounded-md z-50 overflow-hidden">
-                                {airports.filter(a => a.toLowerCase().includes(toValue.toLowerCase())).map((airport) => (
-                                    <div
-                                        key={airport}
-                                        className="p-2 text-sm hover:bg-white/10 cursor-pointer"
-                                        onClick={() => {
-                                            setToValue(airport)
-                                            setShowToDropdown(false)
-                                        }}
-                                    >
-                                        {airport}
-                                    </div>
-                                ))}
+                            <div className="absolute top-full left-0 w-full mt-1 bg-neutral-900 border border-white/10 rounded-md z-50 overflow-hidden max-h-60 overflow-y-auto">
+                                {isSearchingTo ? (
+                                    <div className="p-3 text-sm text-neutral-400 text-center">Searching...</div>
+                                ) : toResults.length > 0 ? (
+                                    toResults.map((location, idx) => (
+                                        <div
+                                            key={`${location.iataCode}-${idx}`}
+                                            className="p-2 text-sm hover:bg-white/10 cursor-pointer flex items-center gap-2"
+                                            onClick={() => handleSelectLocation(location, 'to')}
+                                        >
+                                            {location.type === 'CITY' ? (
+                                                <Building className="h-4 w-4 text-neutral-400" />
+                                            ) : (
+                                                <Plane className="h-4 w-4 text-neutral-400" />
+                                            )}
+                                            <div>
+                                                <span className="font-medium">{location.name}</span>
+                                                <span className="text-neutral-400 ml-1">
+                                                    ({location.iataCode})
+                                                </span>
+                                                <div className="text-xs text-neutral-500">
+                                                    {location.city !== location.name ? `${location.city}, ` : ''}{location.country}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : debouncedToValue.length >= 2 ? (
+                                    <div className="p-3 text-sm text-neutral-400 text-center">No results found</div>
+                                ) : null}
                             </div>
                         )}
                     </div>
@@ -132,11 +270,9 @@ export function BookFlightForm({ className }: { className?: string }) {
                     </div>
                 </div>
 
-                <Link href="/flights/results" passHref>
-                    <Button className="w-full bg-white text-black hover:bg-neutral-200 mt-2">
-                        <Search className="mr-2 h-4 w-4" /> Search Flights
-                    </Button>
-                </Link>
+                <Button className="w-full bg-white text-black hover:bg-neutral-200 mt-2" onClick={handleSearch}>
+                    <Search className="mr-2 h-4 w-4" /> Search Flights
+                </Button>
             </div>
         </Card>
     )
