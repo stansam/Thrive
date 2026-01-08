@@ -30,6 +30,14 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 import { DatePicker } from '@/components/ui/date-picker';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 // --- Options for Filters ---
 const CabinOptions: FilterOption[] = [
@@ -59,11 +67,12 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
     const [destination, setDestination] = React.useState('');
     const [departureDate, setDepartureDate] = React.useState<Date | undefined>(new Date());
     const [returnDate, setReturnDate] = React.useState<Date | undefined>();
+    const [tripType, setTripType] = React.useState<'round-trip' | 'one-way'>('round-trip');
     const [travelers, setTravelers] = React.useState(1);
+    const [mainCabin, setMainCabin] = React.useState('ECONOMY');
 
     // Advanced State
     const [isExpanded, setIsExpanded] = React.useState(false);
-    const [selectedCabin, setSelectedCabin] = React.useState<string[]>([]);
     const [selectedStops, setSelectedStops] = React.useState<string[]>([]);
     const [maxPrice, setMaxPrice] = React.useState('');
     const [includedAirlines, setIncludedAirlines] = React.useState('');
@@ -155,8 +164,28 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
         if (destParam) setDestination(destParam);
         if (dateParam) setDepartureDate(new Date(dateParam));
         if (adultsParam) setTravelers(parseInt(adultsParam));
-        if (cabinParam) setSelectedCabin([cabinParam]);
+        if (cabinParam) {
+            setMainCabin(cabinParam);
+        }
         if (maxPriceParam) setMaxPrice(maxPriceParam);
+
+        // Check for return date to set round-trip
+        const returnDateParam = searchParams.get('returnDate');
+        if (returnDateParam) {
+            setReturnDate(new Date(returnDateParam));
+            setTripType('round-trip');
+        } else {
+            setTripType('one-way'); // Default to one way if no return date? Or default logic. 
+            // Prompt says default is Round Trip. But if URL has no return date, maybe it IS one way?
+            // "Round Trip"(default). 
+            // I will respect URL if present, otherwise default state is round-trip.
+            // Actually, if I just landed, I want default.
+            // If I searched, I want what I searched.
+            // If returnDateParam is missing on a search result page, it essentially IS a one-way search displayed.
+            if (searchParams.has('adults')) { // heuristic to check if it's a search
+                if (!returnDateParam) setTripType('one-way');
+            }
+        }
     }, [searchParams]);
 
     const handleSearch = () => {
@@ -164,9 +193,19 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
         if (origin) params.append('origin', extractCode(origin));
         if (destination) params.append('destination', extractCode(destination));
         if (departureDate) params.append('departureDate', departureDate.toISOString().split('T')[0]);
+        if (tripType === 'round-trip' && returnDate) {
+            params.append('returnDate', returnDate.toISOString().split('T')[0]);
+        }
         params.append('adults', travelers.toString());
 
-        if (selectedCabin.length > 0) params.append('travelClass', selectedCabin[0]);
+        // Use mainCabin for search
+        params.append('travelClass', mainCabin);
+
+        // Advanced filters
+        if (selectedStops.length > 0) {
+            // Maybe join or multiple? URL usually one param or array.
+            // Usually for specialized filters. Skipping for now as main requirement is Cabin.
+        }
         if (maxPrice) params.append('maxPrice', maxPrice);
 
         router.push(`/flights/results?${params.toString()}`);
@@ -180,10 +219,24 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
         <div className={cn("w-full max-w-5xl mx-auto p-1", className)}>
             {/* Main Search Bar Container */}
             <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 transition-all duration-300">
+                {/* Trip Type Radio */}
+                <div className="mb-4">
+                    <RadioGroup value={tripType} onValueChange={(val: any) => setTripType(val)} className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="round-trip" id="adv-round-trip" className="border-white text-white" />
+                            <Label htmlFor="adv-round-trip" className="text-white cursor-pointer">Round Trip</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="one-way" id="adv-one-way" className="border-white text-white" />
+                            <Label htmlFor="adv-one-way" className="text-white cursor-pointer">One Way</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
 
                     {/* Origin */}
-                    <div className="md:col-span-3 relative group">
+                    <div className="md:col-span-2 relative group">
                         <Label className="text-xs text-neutral-400 ml-1 mb-1.5 block">From</Label>
                         <div className="relative">
                             <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-neutral-500 group-focus-within:text-white transition-colors" />
@@ -234,7 +287,7 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                     </div>
 
                     {/* Destination */}
-                    <div className="md:col-span-3 relative group">
+                    <div className="md:col-span-2 relative group">
                         <Label className="text-xs text-neutral-400 ml-1 mb-1.5 block">To</Label>
                         <div className="relative">
                             <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-neutral-500 group-focus-within:text-white transition-colors" />
@@ -297,16 +350,34 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                     </div>
 
                     {/* Return Date - Optional */}
-                    <div className="md:col-span-2 relative group">
-                        <Label className="text-xs text-neutral-400 ml-1 mb-1.5 block">Return</Label>
-                        <div className="relative">
-                            <DatePicker
-                                date={returnDate}
-                                setDate={setReturnDate}
-                                placeholder="One Way"
-                                className="bg-neutral-900/50 border-white/10 text-white h-10"
-                            />
+                    {tripType === 'round-trip' && (
+                        <div className="md:col-span-2 relative group">
+                            <Label className="text-xs text-neutral-400 ml-1 mb-1.5 block">Return</Label>
+                            <div className="relative">
+                                <DatePicker
+                                    date={returnDate}
+                                    setDate={setReturnDate}
+                                    placeholder="Select Date"
+                                    className="bg-neutral-900/50 border-white/10 text-white h-10"
+                                />
+                            </div>
                         </div>
+                    )}
+
+                    {/* Cabin Class - Main visible field */}
+                    <div className="md:col-span-2 relative group">
+                        <Label className="text-xs text-neutral-400 ml-1 mb-1.5 block">Cabin</Label>
+                        <Select value={mainCabin} onValueChange={setMainCabin}>
+                            <SelectTrigger className="bg-neutral-900/50 border-white/10 text-white h-10">
+                                <SelectValue placeholder="Cabin" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-neutral-900 text-white border-white/10">
+                                <SelectItem value="ECONOMY">Economy</SelectItem>
+                                <SelectItem value="PREMIUM_ECONOMY">Premium</SelectItem>
+                                <SelectItem value="BUSINESS">Business</SelectItem>
+                                <SelectItem value="FIRST">First</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     {/* Travelers & Search Button */}
@@ -344,7 +415,7 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                     <div className="flex items-center gap-4">
                         {/* Only show these if NOT expanded to keep UI clean, or maybe show always if we want quick access? 
                      Let's show a summary here if filters are active */}
-                        {(selectedCabin.length > 0 || selectedStops.length > 0 || maxPrice) && !isExpanded && (
+                        {(selectedStops.length > 0 || maxPrice) && !isExpanded && (
                             <div className="flex gap-2 text-xs text-neutral-400 items-center">
                                 <Filter className="h-3 w-3" />
                                 <span className="text-neural-300">Filters active</span>
@@ -371,18 +442,6 @@ export function AdvancedFlightSearch({ className }: { className?: string }) {
                     "grid grid-cols-1 md:grid-cols-4 gap-4 overflow-hidden transition-all duration-500 ease-in-out",
                     isExpanded ? "max-h-[500px] opacity-100 mt-6 pt-6 border-t border-white/10" : "max-h-0 opacity-0 mt-0 pt-0"
                 )}>
-                    {/* Filter: Cabin */}
-                    <div className="space-y-1.5">
-                        <Label className="text-xs text-neutral-500">Cabin Class</Label>
-                        <DataTableFilter
-                            label="Any Cabin"
-                            options={CabinOptions}
-                            selectedValues={selectedCabin}
-                            onChange={setSelectedCabin}
-                            isMultiSelect={true}
-                            className="w-full justify-between bg-neutral-900/30 border-white/5 hover:bg-neutral-900/50"
-                        />
-                    </div>
 
                     {/* Filter: Stops */}
                     <div className="space-y-1.5">

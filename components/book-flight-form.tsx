@@ -12,13 +12,24 @@ import { useRouter } from "next/navigation"
 import { DatePicker } from "@/components/ui/date-picker"
 import { flightService } from "@/services/flight-service"
 import { useDebounce } from "@/lib/hooks/use-debounce"
-import { Plane, Building } from "lucide-react"
+import { Plane, Building, Briefcase, Armchair } from "lucide-react"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 export function BookFlightForm({ className }: { className?: string }) {
     const router = useRouter()
     const [adults, setAdults] = React.useState(1)
     const [children, setChildren] = React.useState(0)
     const [date, setDate] = React.useState<Date | undefined>(new Date())
+    const [returnDate, setReturnDate] = React.useState<Date | undefined>(undefined)
+    const [tripType, setTripType] = React.useState<'round-trip' | 'one-way'>('round-trip')
+    const [cabinClass, setCabinClass] = React.useState('ECONOMY')
 
     const [showFromDropdown, setShowFromDropdown] = React.useState(false)
     const [showToDropdown, setShowToDropdown] = React.useState(false)
@@ -121,10 +132,14 @@ export function BookFlightForm({ className }: { className?: string }) {
         if (date) {
             params.append('departureDate', date.toISOString().split('T')[0]);
         }
+        if (tripType === 'round-trip' && returnDate) {
+            params.append('returnDate', returnDate.toISOString().split('T')[0]);
+        }
         params.append('adults', adults.toString());
         if (children > 0) {
             params.append('children', children.toString());
         }
+        params.append('travelClass', cabinClass);
 
         router.push(`/flights/results?${params.toString()}`);
     }
@@ -133,6 +148,20 @@ export function BookFlightForm({ className }: { className?: string }) {
         <Card className={cn("w-[400px] p-6 bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-2xl", className)}>
             <div className="space-y-4">
                 <h2 className="text-xl font-semibold mb-4 text-center">Book Your Flight</h2>
+
+                {/* Trip Type */}
+                <div className="flex justify-center mb-4">
+                    <RadioGroup defaultValue="round-trip" value={tripType} onValueChange={(val: any) => setTripType(val)} className="flex gap-4">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="round-trip" id="round-trip" className="border-white text-white" />
+                            <Label htmlFor="round-trip" className="text-white">Round Trip</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="one-way" id="one-way" className="border-white text-white" />
+                            <Label htmlFor="one-way" className="text-white">One Way</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
 
                 {/* Row 1: From / To */}
                 <div className="grid grid-cols-2 gap-4">
@@ -268,6 +297,29 @@ export function BookFlightForm({ className }: { className?: string }) {
                         <Label className="text-xs text-neutral-400">Departure</Label>
                         <DatePicker date={date} setDate={setDate} className="bg-black/50 border-white/10 text-white" />
                     </div>
+
+                    {tripType === 'round-trip' && (
+                        <div className="flex flex-col space-y-2 col-span-2">
+                            <Label className="text-xs text-neutral-400">Return</Label>
+                            <DatePicker date={returnDate} setDate={setReturnDate} className="bg-black/50 border-white/10 text-white" />
+                        </div>
+                    )}
+                </div>
+
+                {/* Cabin Class */}
+                <div className="flex flex-col space-y-2 mt-2">
+                    <Label className="text-xs text-neutral-400">Cabin Class</Label>
+                    <Select value={cabinClass} onValueChange={setCabinClass}>
+                        <SelectTrigger className="bg-black/50 border-white/10 text-white h-9">
+                            <SelectValue placeholder="Select cabin class" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-neutral-900 text-white border-white/10">
+                            <SelectItem value="ECONOMY">Economy</SelectItem>
+                            <SelectItem value="PREMIUM_ECONOMY">Premium Economy</SelectItem>
+                            <SelectItem value="BUSINESS">Business</SelectItem>
+                            <SelectItem value="FIRST">First Class</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 <Button className="w-full bg-white text-black hover:bg-neutral-200 mt-2" onClick={handleSearch}>
