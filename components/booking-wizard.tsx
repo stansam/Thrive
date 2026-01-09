@@ -166,7 +166,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
     const currentStepIdx = steps.findIndex(s => s.id === currentStep);
 
     return (
-        <div className="max-w-4xl mx-auto p-4 space-y-6">
+        <div className="max-w-4xl mx-auto p-3 md:p-4 space-y-6">
 
             {/* Progress Bar */}
             <div className="w-full bg-neutral-900/50 rounded-full h-2 mb-8 relative overflow-hidden">
@@ -182,7 +182,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                         <div className={`p-2 rounded-full border-2 ${idx <= currentStepIdx ? 'border-sky-500 bg-sky-950' : 'border-neutral-800 bg-neutral-900'}`}>
                             <s.icon className="h-4 w-4" />
                         </div>
-                        <span className="text-xs font-medium">{s.label}</span>
+                        <span className="text-xs font-medium hidden md:block">{s.label}</span>
                     </div>
                 ))}
             </div>

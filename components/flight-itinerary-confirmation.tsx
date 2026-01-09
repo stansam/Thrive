@@ -84,12 +84,12 @@ export function FlightItineraryConfirmation({ segments }: FlightItineraryProps) 
                             </div>
 
                             <div className="flex-1 space-y-4">
-                                <div className="flex justify-between items-start">
-                                    <div>
+                                <div className="flex flex-col md:flex-row gap-4 md:items-start">
+                                    <div className="flex-1">
                                         <h4 className="font-semibold">{segment.airlineName || segment.carrierCode} {segment.number}</h4>
                                         <p className="text-xs text-neutral-500">Aircraft: {segment.aircraft?.code}</p>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-left md:text-right">
                                         <Badge variant="secondary" className="bg-neutral-800 text-neutral-300">
                                             {formatDuration(segment.duration)}
                                         </Badge>
@@ -98,10 +98,10 @@ export function FlightItineraryConfirmation({ segments }: FlightItineraryProps) 
 
                                 {/* Departure */}
                                 <div className="flex gap-4 items-start">
-                                    <div className="w-16 text-right font-mono text-lg">{formatTime(segment.departure.at)}</div>
+                                    <div className="w-14 md:w-16 text-right font-mono text-base md:text-lg">{formatTime(segment.departure.at)}</div>
                                     <div className="relative pt-1 flex flex-col gap-1">
-                                        <div className="h-3 w-3 rounded-full bg-neutral-600 absolute left-[-23px] top-[7px] border-2 border-neutral-900" />
-                                        <div className="font-bold flex items-center gap-2">
+                                        <div className="h-3 w-3 rounded-full bg-neutral-600 absolute left-[-22px] md:left-[-23px] top-[6px] md:top-[7px] border-2 border-neutral-900" />
+                                        <div className="font-bold flex flex-wrap items-center gap-2">
                                             {segment.departure.iataCode}
                                             <span className="text-xs font-normal text-neutral-400">{formatDate(segment.departure.at)}</span>
                                         </div>
@@ -112,16 +112,16 @@ export function FlightItineraryConfirmation({ segments }: FlightItineraryProps) 
                                 </div>
 
                                 {/* Duration / Flight Time Indicator */}
-                                <div className="pl-20 py-1 text-xs text-neutral-500 flex items-center gap-2">
+                                <div className="pl-16 md:pl-20 py-1 text-xs text-neutral-500 flex items-center gap-2">
                                     <Clock className="h-3 w-3" /> Flight time: {formatDuration(segment.duration)}
                                 </div>
 
                                 {/* Arrival */}
                                 <div className="flex gap-4 items-start">
-                                    <div className="w-16 text-right font-mono text-lg">{formatTime(segment.arrival.at)}</div>
+                                    <div className="w-14 md:w-16 text-right font-mono text-base md:text-lg">{formatTime(segment.arrival.at)}</div>
                                     <div className="relative pt-1 flex flex-col gap-1">
-                                        <div className="h-3 w-3 rounded-full bg-white absolute left-[-23px] top-[7px] border-2 border-neutral-900" />
-                                        <div className="font-bold flex items-center gap-2">
+                                        <div className="h-3 w-3 rounded-full bg-white absolute left-[-22px] md:left-[-23px] top-[6px] md:top-[7px] border-2 border-neutral-900" />
+                                        <div className="font-bold flex flex-wrap items-center gap-2">
                                             {segment.arrival.iataCode}
                                             <span className="text-xs font-normal text-neutral-400">{formatDate(segment.arrival.at)}</span>
                                         </div>
