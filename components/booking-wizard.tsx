@@ -16,6 +16,7 @@ import { PassportScanner, ScannedPassportData } from './passport-scanner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { FlightItineraryConfirmation } from '@/components/flight-itinerary-confirmation';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -23,11 +24,12 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 interface BookingWizardProps {
     flightOffer: FlightOffer;
     user: any; // User context
+    dictionaries?: any;
 }
 
 type WizardStep = 'review' | 'travelers' | 'payment' | 'confirmation';
 
-export function BookingWizard({ flightOffer, user }: BookingWizardProps) {
+export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizardProps) {
     const [currentStep, setCurrentStep] = useState<WizardStep>('review');
     const [travelers, setTravelers] = useState<TravelerInfo[]>([]);
     const [bookingId, setBookingId] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export function BookingWizard({ flightOffer, user }: BookingWizardProps) {
                 dateOfBirth: '',
                 gender: 'MALE',
                 email: user?.email || '',
-                phone: user?.phone || ''
+                phone: { countryCode: '1', number: user?.phone || '' }
             }]);
         }
     }, [flightOffer, user]);
@@ -65,13 +67,17 @@ export function BookingWizard({ flightOffer, user }: BookingWizardProps) {
 
     const handlePassportScan = (index: number, data: ScannedPassportData) => {
         const updated = [...travelers];
+
+        // Ensure gender is valid (default MALE if unknown)
+        const gender: 'MALE' | 'FEMALE' = (data.gender === 'FEMALE') ? 'FEMALE' : 'MALE';
+
         updated[index] = {
             ...updated[index],
             firstName: data.firstName,
             lastName: data.lastName,
             dateOfBirth: data.birthDate, // YYYY-MM-DD
-            gender: data.gender,
-            nationality: data.nationality,
+            gender: gender,
+            // phone and email preserved from initial state or manual entry
             documents: [{
                 documentType: 'PASSPORT',
                 number: data.passportNumber,
@@ -106,14 +112,14 @@ export function BookingWizard({ flightOffer, user }: BookingWizardProps) {
 
             const response = await flightService.createBooking(request);
 
-            if (!response.success) {
+            if (!response.success || !response.data) {
                 throw new Error(response.message || 'Booking initialization failed');
             }
 
-            const { bookingId, amount, currency } = response.data;
-            setBookingId(bookingId);
+            const { bookingId: bId, amount, currency: curr } = response.data;
+            setBookingId(bId);
             setServiceFee(amount); // This is the Service Fee
-            setCurrency(currency);
+            setCurrency(curr);
 
             // Move to payment
             setCurrentStep('payment');
@@ -128,7 +134,6 @@ export function BookingWizard({ flightOffer, user }: BookingWizardProps) {
 
     const onPaymentSuccess = async (paymentIntentId: string) => {
         setIsProcessing(true);
-        // setStatus('Confirming with Airline...'); // removed status state var to simplified
         try {
             if (!bookingId) throw new Error("No booking ID found");
 
@@ -138,7 +143,7 @@ export function BookingWizard({ flightOffer, user }: BookingWizardProps) {
                 throw new Error(response.message || 'Confirmation failed');
             }
 
-            setPnr(response.data.bookingReference);
+            setPnr(response.data?.bookingReference || 'PENDING');
             setCurrentStep('confirmation');
 
         } catch (err: any) {
@@ -192,39 +197,80 @@ export function BookingWizard({ flightOffer, user }: BookingWizardProps) {
 
             {/* STEP 1: REVIEW */}
             {currentStep === 'review' && (
-                <Card className="bg-neutral-900 border-neutral-800">
-                    <CardHeader>
-                        <CardTitle>Review Your Quote</CardTitle>
-                        <CardDescription>Review the flight details and estimated fees.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="p-4 bg-neutral-800 rounded-lg space-y-2">
-                            <div className="flex justify-between">
-                                <span className="text-neutral-400">Total Ticket Price</span>
-                                <span className="text-xl font-bold text-white">{flightOffer.price.total} {flightOffer.price.currency}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm text-yellow-500/80">
-                                <span>Payable later directly to airline</span>
-                                <ShieldCheck className="h-4 w-4" />
-                            </div>
-                        </div>
+                <div className="space-y-6">
+                    <Card className="bg-neutral-900 border-neutral-800">
+                        <CardHeader>
+                            <CardTitle>Review Your Quote</CardTitle>
+                            <CardDescription>Please verify the flight details and pricing before proceeding.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-8">
 
-                        <Alert className="bg-blue-900/20 border-blue-900/50 text-blue-100">
-                            <ShieldCheck className="h-4 w-4 text-blue-400" />
-                            <AlertTitle>Concierge Service</AlertTitle>
-                            <AlertDescription>
-                                To secure this price and holding (PNR), we charge a small service fee handled by Thrive.
-                                The ticket cost itself will be settled afterwards with our admin support or directly with the airline.
-                            </AlertDescription>
-                        </Alert>
+                            {/* ITINERARY */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                    <Plane className="h-4 w-4 text-sky-400" /> Flight Itinerary
+                                </h3>
+                                {flightOffer.itineraries.map((itinerary, idx) => (
+                                    <div key={idx} className="space-y-2">
+                                        <div className="text-sm text-neutral-400 font-medium">
+                                            {idx === 0 ? 'Outbound' : 'Return'} • {itinerary.duration ? itinerary.duration.replace('PT', '').toLowerCase() : ''}
+                                        </div>
+                                        <FlightItineraryConfirmation
+                                            segments={itinerary.segments.map(seg => ({
+                                                ...seg,
+                                                airlineName: dictionaries?.carriers?.[seg.carrierCode] || seg.carrierCode,
+                                                airlineLogo: `https://pic.al/8.png` // Placeholder
+                                            }))}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
 
-                    </CardContent>
-                    <CardFooter className="flex justify-end">
-                        <Button onClick={() => setCurrentStep('travelers')} className="bg-white text-black hover:bg-neutral-200">
-                            Continue to Traveler Details <ChevronRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </CardFooter>
-                </Card>
+                            <Separator className="bg-neutral-800" />
+
+                            {/* PRICE BREAKDOWN */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                    <CreditCard className="h-4 w-4 text-green-400" /> Price Breakdown
+                                </h3>
+
+                                <div className="bg-neutral-800/50 rounded-lg p-4 space-y-3 border border-neutral-800">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-neutral-400">Base Fare ({flightOffer.travelerPricings.length} Traveler{flightOffer.travelerPricings.length > 1 ? 's' : ''})</span>
+                                        <span className="text-white">{new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(parseFloat(flightOffer.price.base || '0'))}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-neutral-400">Taxes & Airline Fees</span>
+                                        <span className="text-white">{new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(parseFloat(flightOffer.price.total || '0') - parseFloat(flightOffer.price.base || '0'))}</span>
+                                    </div>
+                                    <Separator className="bg-neutral-700/50" />
+                                    <div className="flex justify-between items-center pt-1">
+                                        <div>
+                                            <span className="text-neutral-200 font-medium">Total Airline Data Price</span>
+                                            <p className="text-xs text-yellow-500/80 mt-0.5">Payable later to airline</p>
+                                        </div>
+                                        <span className="text-xl font-bold text-white">{new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(parseFloat(flightOffer.price.total || '0'))}</span>
+                                    </div>
+                                </div>
+
+                                <Alert className="bg-blue-900/10 border-blue-900/30 text-blue-100">
+                                    <ShieldCheck className="h-4 w-4 text-blue-400" />
+                                    <AlertTitle className="text-blue-300">Concierge Booking Fee</AlertTitle>
+                                    <AlertDescription className="text-blue-200/80 text-xs mt-1">
+                                        To hold this reservation (PNR) and guarantee the fare, a separate concierge fee will be calculated next.
+                                        You will only pay this fee today. The ticket cost is settled later.
+                                    </AlertDescription>
+                                </Alert>
+                            </div>
+
+                        </CardContent>
+                        <CardFooter className="flex justify-end pt-4 border-t border-neutral-800">
+                            <Button onClick={() => setCurrentStep('travelers')} className="bg-white text-black hover:bg-neutral-200 min-w-[150px]">
+                                Continue <ChevronRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                </div>
             )}
 
             {/* STEP 2: TRAVELERS */}
@@ -281,7 +327,7 @@ export function BookingWizard({ flightOffer, user }: BookingWizardProps) {
                                         <select
                                             className="w-full h-10 rounded-md border border-neutral-700 bg-black/50 px-3 py-2 text-sm text-white"
                                             value={traveler.gender}
-                                            onChange={(e) => handleTravelerUpdate(idx, 'gender', e.target.value)}
+                                            onChange={(e) => handleTravelerUpdate(idx, 'gender', e.target.value as 'MALE' | 'FEMALE')}
                                         >
                                             <option value="MALE">Male</option>
                                             <option value="FEMALE">Female</option>
@@ -301,8 +347,8 @@ export function BookingWizard({ flightOffer, user }: BookingWizardProps) {
                                             <div className="space-y-2">
                                                 <Label>Contact Phone</Label>
                                                 <Input
-                                                    value={traveler.phone}
-                                                    onChange={(e) => handleTravelerUpdate(idx, 'phone', e.target.value)}
+                                                    value={traveler.phone.number}
+                                                    onChange={(e) => handleTravelerUpdate(idx, 'phone', { ...traveler.phone, number: e.target.value })}
                                                     className="bg-black/50 border-neutral-700"
                                                 />
                                             </div>
@@ -413,18 +459,41 @@ function PaymentForm({ amount, currency, bookingId, onSuccess }: { amount: numbe
         setMsg('');
 
         try {
-            const result = await paymentApi.processPaymentWithElements(
-                elements,
+            // Updated payment flow: 
+            // 1. Create intent via API
+            // 2. Confirm intent via Stripe (frontend)
+            // 3. Confirm booking via API (which verifies intent)
+
+            // Step 1: Create Intent
+            const intentRes = await paymentApi.createPaymentIntent({
                 bookingId,
                 amount,
                 currency
-            );
+            });
 
-            if (result.success && result.paymentIntentId) {
-                onSuccess(result.paymentIntentId);
-            } else {
-                throw new Error(result.message || "Payment processing failed");
+            if (!intentRes.success || !intentRes.data?.clientSecret) {
+                throw new Error("Failed to initialize payment gateway.");
             }
+
+            const { clientSecret, paymentIntentId } = intentRes.data;
+
+            // Step 2: Confirm via Stripe Elements
+            const { error: stripeError } = await stripe.confirmPayment({
+                elements,
+                clientSecret,
+                confirmParams: {
+                    // Start of confirm workflow. We use 'if_required' to handle redirects but simple cards usually confirm inline.
+                    return_url: `${window.location.origin}/bookings/${bookingId}/confirmation`,
+                },
+                redirect: 'if_required'
+            });
+
+            if (stripeError) {
+                throw new Error(stripeError.message);
+            }
+
+            // Step 3: Success! Call onSuccess to trigger backend booking confirmation
+            onSuccess(paymentIntentId);
 
         } catch (e: any) {
             console.error("Payment Error:", e);

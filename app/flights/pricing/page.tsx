@@ -32,9 +32,16 @@ function FlightPricingContent() {
     const [apiError, setApiError] = useState<string | null>(null);
     const [showExpiredDialog, setShowExpiredDialog] = useState(false);
 
+    const [dictionaries, setDictionaries] = useState<any>({});
+
     useEffect(() => {
         const init = async () => {
             if (typeof window !== 'undefined') {
+                const storedDictionaries = sessionStorage.getItem('flightDictionaries');
+                if (storedDictionaries) {
+                    setDictionaries(JSON.parse(storedDictionaries));
+                }
+
                 const storedOffer = sessionStorage.getItem('selectedFlightOffer');
 
                 if (storedOffer) {
@@ -101,7 +108,7 @@ function FlightPricingContent() {
             </div>
 
             <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:py-8">
-                <BookingWizard flightOffer={selectedOffer} user={user} />
+                <BookingWizard flightOffer={selectedOffer} user={user} dictionaries={dictionaries} />
             </main>
 
             <FooterSection />
