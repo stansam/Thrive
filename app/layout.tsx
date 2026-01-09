@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 
+import { Toaster } from "@/components/ui/toaster";
 import "./globals.css";
 
 // const geistSans = Geist({
@@ -31,7 +32,10 @@ export default function RootLayout({
       <body
         className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}
       >
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <Toaster />
+        </AuthProvider>
         <Script
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"
