@@ -17,7 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { FlightItineraryConfirmation } from '@/components/flight-itinerary-confirmation';
-
+import { DatePicker } from '@/components/ui/date-picker';
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -28,6 +28,17 @@ interface BookingWizardProps {
 }
 
 type WizardStep = 'review' | 'travelers' | 'payment' | 'confirmation';
+
+function parseISODate(value?: string): Date | undefined {
+    if (!value) return undefined
+    const date = new Date(value)
+    return isNaN(date.getTime()) ? undefined : date
+}
+
+function formatISODate(date?: Date): string {
+    if (!date) return ""
+    return date.toISOString().split("T")[0]
+}
 
 export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizardProps) {
     const [currentStep, setCurrentStep] = useState<WizardStep>('review');
@@ -116,9 +127,9 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                 throw new Error(response.message || 'Booking initialization failed');
             }
 
-            const { bookingId: bId, amount, currency: curr } = response.data;
+            const { bookingId: bId, amountDue, currency: curr } = response.data;
             setBookingId(bId);
-            setServiceFee(amount); // This is the Service Fee
+            setServiceFee(amountDue); // This is the Service Fee
             setCurrency(curr);
 
             // Move to payment
@@ -200,8 +211,8 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                 <div className="space-y-6">
                     <Card className="bg-neutral-900 border-neutral-800">
                         <CardHeader>
-                            <CardTitle>Review Your Quote</CardTitle>
-                            <CardDescription>Please verify the flight details and pricing before proceeding.</CardDescription>
+                            <CardTitle className="text-white">Review Your Quote</CardTitle>
+                            <CardDescription className="text-white">Please verify the flight details and pricing before proceeding.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-8">
 
@@ -279,7 +290,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                     {travelers.map((traveler, idx) => (
                         <Card key={idx} className="bg-neutral-900 border-neutral-800">
                             <CardHeader>
-                                <CardTitle className="flex justify-between items-center">
+                                <CardTitle className="flex justify-between items-center text-white">
                                     <span>Traveler {idx + 1} ({traveler.travelerType})</span>
                                     {idx > 0 && <Button variant="ghost" size="sm" onClick={() => {
                                         const newT = [...travelers];
@@ -295,7 +306,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                                 />
                                 <Separator className="bg-neutral-800" />
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 text-white">
                                         <Label>First Name</Label>
                                         <Input
                                             value={traveler.firstName}
@@ -304,7 +315,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                                             placeholder="As on passport"
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 text-white">
                                         <Label>Last Name</Label>
                                         <Input
                                             value={traveler.lastName}
@@ -313,16 +324,27 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                                             placeholder="As on passport"
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 text-white">
                                         <Label>Date of Birth</Label>
-                                        <Input
+                                        {/* <Input
                                             type="date"
                                             value={traveler.dateOfBirth}
                                             onChange={(e) => handleTravelerUpdate(idx, 'dateOfBirth', e.target.value)}
                                             className="bg-black/50 border-neutral-700"
+                                        /> */}
+                                        <DatePicker
+                                            date={parseISODate(traveler.dateOfBirth)}
+                                            setDate={(date) =>
+                                                handleTravelerUpdate(
+                                                    idx,
+                                                    "dateOfBirth",
+                                                    formatISODate(date)
+                                                )
+                                            }
+                                            className="bg-black/50 border-neutral-700 text-white h-10"
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 text-white">
                                         <Label>Gender</Label>
                                         <select
                                             className="w-full h-10 rounded-md border border-neutral-700 bg-black/50 px-3 py-2 text-sm text-white"
@@ -336,7 +358,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                                     {/* Add Email/Phone for primary contact (first traveler) */}
                                     {idx === 0 && (
                                         <>
-                                            <div className="space-y-2">
+                                            <div className="space-y-2 text-white">
                                                 <Label>Contact Email</Label>
                                                 <Input
                                                     value={traveler.email}
@@ -344,7 +366,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                                                     className="bg-black/50 border-neutral-700"
                                                 />
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className="space-y-2 text-white">
                                                 <Label>Contact Phone</Label>
                                                 <Input
                                                     value={traveler.phone.number}

@@ -124,7 +124,7 @@ export function PassportScanner({ onScanComplete, onError }: PassportScannerProp
     return (
         <Card className="w-full bg-neutral-900 border-neutral-800">
             <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-white">
                     <Camera className="h-5 w-5 text-sky-400" />
                     Passport Scanner
                 </CardTitle>

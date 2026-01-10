@@ -40,7 +40,7 @@ class PaymentApiService {
     private stripe: Promise<Stripe | null>;
 
     constructor() {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api';
 
         this.client = axios.create({
             baseURL: API_BASE_URL,

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plane, Clock, Calendar } from "lucide-react";
+import { Plane, ArrowRight, Clock, Calendar } from "lucide-react";
 
 interface FlightSegment {
     id: string;
@@ -96,40 +96,43 @@ export function FlightItineraryConfirmation({ segments }: FlightItineraryProps) 
                                     </div>
                                 </div>
 
-                                {/* Departure */}
-                                <div className="flex gap-4 items-start">
-                                    <div className="w-14 md:w-16 text-right font-mono text-base md:text-lg">{formatTime(segment.departure.at)}</div>
-                                    <div className="relative pt-1 flex flex-col gap-1">
-                                        <div className="h-3 w-3 rounded-full bg-neutral-600 absolute left-[-22px] md:left-[-23px] top-[6px] md:top-[7px] border-2 border-neutral-900" />
-                                        <div className="font-bold flex flex-wrap items-center gap-2">
-                                            {segment.departure.iataCode}
-                                            <span className="text-xs font-normal text-neutral-400">{formatDate(segment.departure.at)}</span>
-                                        </div>
-                                        <div className="text-sm text-neutral-400">
-                                            {segment.departure.terminal && `Terminal ${segment.departure.terminal}`}
+                                {/* Departure & Arrival */}
+                                <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+                                    <div className="flex gap-4 items-start">
+                                        <div className="mr-4 w-14 md:w-16 text-right font-mono text-base md:text-lg">{formatTime(segment.departure.at)}</div>
+                                        <div className="relative pt-1 flex flex-col gap-1">
+                                            <div className="h-3 w-3 rounded-full bg-neutral-600 absolute left-[-22px] md:left-[-23px] top-[6px] md:top-[7px] border-2 border-neutral-900" />
+                                            <div className="font-bold flex flex-wrap items-center gap-2">
+                                                {segment.departure.iataCode}
+                                                <span className="text-xs font-normal text-neutral-400">{formatDate(segment.departure.at)}</span>
+                                            </div>
+                                            <div className="text-sm text-neutral-400">
+                                                {segment.departure.terminal && `Terminal ${segment.departure.terminal}`}
+                                            </div>
                                         </div>
                                     </div>
+                                    <ArrowRight className="h-4 w-4 text-neutral-400 shrink-0 hidden md:block" />
+                                    <div className="flex gap-4 items-start">
+                                        <div className="mr-4 w-14 md:w-16 text-right font-mono text-base md:text-lg">{formatTime(segment.arrival.at)}</div>
+                                        <div className="relative pt-1 flex flex-col gap-1">
+                                            <div className="h-3 w-3 rounded-full bg-white absolute left-[-22px] md:left-[-23px] top-[6px] md:top-[7px] border-2 border-neutral-900" />
+                                            <div className="font-bold flex flex-wrap items-center gap-2">
+                                                {segment.arrival.iataCode}
+                                                <span className="text-xs font-normal text-neutral-400">{formatDate(segment.arrival.at)}</span>
+                                            </div>
+                                            <div className="text-sm text-neutral-400">
+                                                {segment.arrival.terminal && `Terminal ${segment.arrival.terminal}`}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {/* </div> */}
                                 </div>
 
                                 {/* Duration / Flight Time Indicator */}
-                                <div className="pl-16 md:pl-20 py-1 text-xs text-neutral-500 flex items-center gap-2">
+                                {/* <div className="pl-16 md:pl-20 py-1 text-xs text-neutral-500 flex items-center gap-2">
                                     <Clock className="h-3 w-3" /> Flight time: {formatDuration(segment.duration)}
-                                </div>
+                                </div> */}
 
-                                {/* Arrival */}
-                                <div className="flex gap-4 items-start">
-                                    <div className="w-14 md:w-16 text-right font-mono text-base md:text-lg">{formatTime(segment.arrival.at)}</div>
-                                    <div className="relative pt-1 flex flex-col gap-1">
-                                        <div className="h-3 w-3 rounded-full bg-white absolute left-[-22px] md:left-[-23px] top-[6px] md:top-[7px] border-2 border-neutral-900" />
-                                        <div className="font-bold flex flex-wrap items-center gap-2">
-                                            {segment.arrival.iataCode}
-                                            <span className="text-xs font-normal text-neutral-400">{formatDate(segment.arrival.at)}</span>
-                                        </div>
-                                        <div className="text-sm text-neutral-400">
-                                            {segment.arrival.terminal && `Terminal ${segment.arrival.terminal}`}
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
