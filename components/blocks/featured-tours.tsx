@@ -231,70 +231,58 @@ export function FeaturedTours() {
                                         key={item.id}
                                         className="max-w-[340px] pl-[20px] lg:max-w-[400px]"
                                     >
-                                        <div className="group relative h-full min-h-[32rem] max-w-full overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/50">
-                                            <div className="absolute inset-0 h-1/2 overflow-hidden pointer-events-none">
+                                        <div className="group relative h-full flex flex-col overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/50">
+                                            <div className="relative aspect-[4/3] w-full overflow-hidden">
                                                 <img
                                                     src={item.featured_image || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1080&auto=format&fit=crop"}
                                                     alt={item.name}
                                                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 />
                                                 <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-900 to-transparent pointer-events-none" />
+                                                <div className="absolute top-4 left-4">
+                                                    <div className="text-xs font-bold text-white uppercase tracking-wider bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
+                                                        {item.duration_days} Days • {item.duration_nights} Nights
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div className="absolute inset-0 pt-[45%] flex flex-col p-6 h-full pointer-events-none">
-                                                <div className="relative z-10 flex flex-col h-full justify-between pointer-events-auto">
-                                                    <div>
-                                                        <div className="mb-2 text-xs font-bold text-white uppercase tracking-wider bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full w-fit">
-                                                            {item.duration_days} Days • {item.duration_nights} Nights
-                                                        </div>
-                                                        <h3 className="text-2xl font-bold mb-1 leading-tight">{item.name}</h3>
-                                                        <div className="text-xl font-semibold text-white mb-4">From ${item.starting_price}</div>
+                                            <div className="flex flex-1 flex-col justify-between p-6">
+                                                <div>
+                                                    <h3 className="text-xl font-bold mb-2 leading-tight line-clamp-2">{item.name}</h3>
+                                                    <div className="text-lg font-semibold text-white mb-4">From ${(item.starting_price || 0).toLocaleString()}</div>
 
-                                                        <div className="flex flex-wrap gap-2 mb-6">
-                                                            {(item.highlights || []).slice(0, 2).map((highlight, idx) => (
-                                                                <span key={idx} className="max-w-[120px] truncate text-[10px] tracking-wide px-2 py-1 rounded-full bg-white/10 text-white/90">
-                                                                    {highlight}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-
-                                                        <div className="space-y-4 text-sm">
-                                                            <div>
-                                                                <h4 className="font-semibold mb-2 text-white/90">What’s Included</h4>
-                                                                <ul className="grid grid-cols-1 gap-1">
-                                                                    {(item.inclusions || []).slice(0, 3).map((inc, i) => (
-                                                                        <li key={i} className="flex items-center gap-2 text-muted-foreground">
-                                                                            <Check className="size-3 text-green-500" /> {inc}
-                                                                        </li>
-                                                                    ))}
-                                                                    {(item.inclusions?.length || 0) > 3 && (
-                                                                        <li className="text-xs text-muted-foreground pl-5">+ {(item.inclusions?.length || 0) - 3} more</li>
-                                                                    )}
-                                                                </ul>
-                                                            </div>
-                                                            {item.exclusions && item.exclusions.length > 0 && (
-                                                                <div>
-                                                                    <h4 className="font-semibold mb-2 text-white/90">What’s Not Included</h4>
-                                                                    <ul className="grid grid-cols-1 gap-1">
-                                                                        {item.exclusions.slice(0, 2).map((exc, i) => (
-                                                                            <li key={i} className="flex items-center gap-2 text-muted-foreground">
-                                                                                <X className="size-3 text-red-500" /> {exc}
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                </div>
-                                                            )}
-                                                        </div>
+                                                    <div className="flex flex-wrap gap-2 mb-6">
+                                                        {(item.highlights || []).slice(0, 3).map((highlight, idx) => (
+                                                            <span key={idx} className="max-w-[100px] truncate text-[10px] tracking-wide px-2 py-1 rounded-full bg-white/10 text-white/90">
+                                                                {highlight}
+                                                            </span>
+                                                        ))}
                                                     </div>
 
-                                                    <Button
-                                                        onClick={() => handleViewPackage(item.slug || '')}
-                                                        className="w-full mt-6 bg-white text-black hover:bg-neutral-200"
-                                                    >
-                                                        View Package
-                                                        <ArrowRight className="ml-2 size-4" />
-                                                    </Button>
+                                                    <div className="space-y-4 text-sm">
+                                                        <div>
+                                                            <h4 className="font-semibold mb-2 text-white/90">What’s Included</h4>
+                                                            <ul className="grid grid-cols-1 gap-1">
+                                                                {(item.inclusions || []).slice(0, 3).map((inc, i) => (
+                                                                    <li key={i} className="flex items-center gap-2 text-muted-foreground">
+                                                                        <Check className="size-3 text-green-500 shrink-0" /> <span className="truncate">{inc}</span>
+                                                                    </li>
+                                                                ))}
+                                                                {(item.inclusions?.length || 0) > 3 && (
+                                                                    <li className="text-xs text-muted-foreground pl-5">+ {(item.inclusions?.length || 0) - 3} more</li>
+                                                                )}
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </div>
+
+                                                <Button
+                                                    onClick={() => handleViewPackage(item.slug || '')}
+                                                    className="w-full mt-6 bg-white text-black hover:bg-neutral-200"
+                                                >
+                                                    View Package
+                                                    <ArrowRight className="ml-2 size-4" />
+                                                </Button>
                                             </div>
                                         </div>
                                     </CarouselItem>
