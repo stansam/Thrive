@@ -149,7 +149,7 @@ export interface BookingResponse {
         bookingId: string;
         bookingReference: string;
         paymentId: string;
-        amount: number;
+        amountDue: number;
         currency: string;
         status: string;
     };

@@ -6,7 +6,6 @@ import { Card } from "@/components/ui/card"
 import { Spotlight } from "@/components/ui/spotlight"
 import { Button } from "@/components/ui/button"
 import { BookFlightForm } from "@/components/book-flight-form"
-import { CustomQuoteForm } from "@/components/custom-quote-form"
 import { ServicesMarquee } from "@/components/blocks/services-marquee"
 import { FeaturedTours } from "@/components/blocks/featured-tours"
 import { PricingSection } from "@/components/blocks/pricing-section"
@@ -50,6 +49,7 @@ const services = [
 ]
 
 import { FloatingActionButtons } from "@/components/ui/floating-action-buttons"
+import { SearchTripsForm } from '@/components/search-trips-form';
 
 export default function SplineSceneBasic() {
   const [activeForm, setActiveForm] = useState<'none' | 'book' | 'quote'>('none')
@@ -140,7 +140,7 @@ export default function SplineSceneBasic() {
                 "md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2",
                 activeForm === 'quote' ? "relative opacity-100 scale-100" : "absolute opacity-0 scale-95 pointer-events-none top-0"
               )}>
-                <CustomQuoteForm className="relative w-full max-w-md md:mt-20" />
+                <SearchTripsForm className="relative w-full max-w-md md:mt-20" />
               </div>
             </div>
           </div>
