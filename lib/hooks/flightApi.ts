@@ -1,11 +1,14 @@
 /**
  * Flight API Service
  * Frontend service for interacting with flight booking APIs
+ * Uses centralized apiClient for auth and error handling
  */
 
-import axios, { AxiosError, AxiosInstance } from 'axios';
+import { AxiosError } from 'axios';
+import apiClient from '../api-client';
+import { APIResponse, PaginatedResponse } from '../types/dashboard';
 
-// Types
+// Types (Keep existing interfaces)
 export interface FlightSearchParams {
     origin: string;
     destination: string;
@@ -25,6 +28,7 @@ export interface MultiCitySegment {
     origin: string;
     destination: string;
     departureDate: string;
+    returnDate?: string;
 }
 
 export interface MultiCitySearchParams {
@@ -65,25 +69,6 @@ export interface BookingRequest {
     specialRequests?: string;
 }
 
-export interface ApiResponse<T> {
-    success: boolean;
-    data?: T;
-    error?: string;
-    message?: string;
-    details?: any;
-}
-
-export interface PaginatedResponse<T> {
-    success: boolean;
-    data: T[];
-    pagination: {
-        page: number;
-        perPage: number;
-        total: number;
-        pages: number;
-    };
-}
-
 // API Error Class
 export class FlightApiError extends Error {
     constructor(
@@ -97,202 +82,79 @@ export class FlightApiError extends Error {
     }
 }
 
-// API Client Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-const API_TIMEOUT = 30000; // 30 seconds
-
 class FlightApiService {
-    private client: AxiosInstance;
+    // Helper to normalize errors from apiClient
+    private handleError(error: any): Promise<never> {
+        // apiClient already unwraps response errors somewhat, but we might want to map to FlightApiError
+        const message = error.message || 'An error occurred';
+        const status = error.status || (error.response ? error.response.status : undefined);
+        const code = error.code || 'UNKNOWN';
+        const details = error.details || error.data;
 
-    constructor() {
-        this.client = axios.create({
-            baseURL: API_BASE_URL,
-            timeout: API_TIMEOUT,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            withCredentials: true, // Enable cookies for authentication
-        });
-
-        // Request interceptor
-        this.client.interceptors.request.use(
-            (config) => {
-                // Add auth token if available
-                const token = this.getAuthToken();
-                if (token) {
-                    config.headers.Authorization = `Bearer ${token}`;
-                }
-                return config;
-            },
-            (error) => {
-                return Promise.reject(error);
-            }
-        );
-
-        // Response interceptor
-        this.client.interceptors.response.use(
-            (response) => response,
-            (error: AxiosError<ApiResponse<any>>) => {
-                return this.handleError(error);
-            }
-        );
-    }
-
-    private getAuthToken(): string | null {
-        // Get token from localStorage or cookies
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('auth_token');
-        }
-        return null;
-    }
-
-    private handleError(error: AxiosError<ApiResponse<any>>): Promise<never> {
-        if (error.response) {
-            // Server responded with error
-            const { data, status } = error.response;
-
-            return Promise.reject(
-                new FlightApiError(
-                    data?.message || 'An error occurred',
-                    status,
-                    data?.error,
-                    data?.details
-                )
-            );
-        } else if (error.request) {
-            // Request made but no response
-            return Promise.reject(
-                new FlightApiError(
-                    'No response from server. Please check your connection.',
-                    undefined,
-                    'NETWORK_ERROR'
-                )
-            );
-        } else {
-            // Error setting up request
-            return Promise.reject(
-                new FlightApiError(
-                    error.message || 'An unexpected error occurred',
-                    undefined,
-                    'REQUEST_ERROR'
-                )
-            );
-        }
+        return Promise.reject(new FlightApiError(message, status, code, details));
     }
 
     // ==================== SEARCH ENDPOINTS ====================
 
-    /**
-     * Search for flight offers
-     */
-    async searchFlights(params: FlightSearchParams): Promise<ApiResponse<any>> {
+    async searchFlights(params: FlightSearchParams): Promise<APIResponse<any>> {
         try {
-            const response = await this.client.post<ApiResponse<any>>(
-                '/flights/search',
-                params
-            );
-            return response.data;
+            // apiClient returns response.data directly
+            return await apiClient.post('/flights/search', params);
         } catch (error) {
-            if (error instanceof FlightApiError) {
-                throw error;
-            }
-            throw new FlightApiError('Failed to search flights');
+            return this.handleError(error);
         }
     }
 
-    /**
-     * Search for multi-city flight offers
-     */
-    async searchMultiCity(params: MultiCitySearchParams): Promise<ApiResponse<any>> {
+    async searchMultiCity(params: MultiCitySearchParams): Promise<APIResponse<any>> {
         try {
-            const response = await this.client.post<ApiResponse<any>>(
-                '/flights/search/multi-city',
-                params
-            );
-            return response.data;
+            return await apiClient.post('/flights/search/multi-city', params);
         } catch (error) {
-            if (error instanceof FlightApiError) {
-                throw error;
-            }
-            throw new FlightApiError('Failed to search multi-city flights');
+            return this.handleError(error);
         }
     }
 
     // ==================== PRICING ENDPOINTS ====================
 
-    /**
-     * Confirm flight offer price
-     */
     async confirmPrice(
         flightOffers: any[],
         include?: string[]
-    ): Promise<ApiResponse<any>> {
+    ): Promise<APIResponse<any>> {
         try {
-            const response = await this.client.post<ApiResponse<any>>(
-                '/flights/price',
-                {
-                    flightOffers,
-                    include,
-                }
-            );
-            return response.data;
+            return await apiClient.post('/flights/price', {
+                flightOffers,
+                include,
+            });
         } catch (error) {
-            if (error instanceof FlightApiError) {
-                throw error;
-            }
-            throw new FlightApiError('Failed to confirm price');
+            return this.handleError(error);
         }
     }
 
     // ==================== BOOKING ENDPOINTS ====================
 
-    /**
-     * Create a new booking
-     */
-    async createBooking(bookingData: BookingRequest): Promise<ApiResponse<any>> {
+    async createBooking(bookingData: BookingRequest): Promise<APIResponse<any>> {
         try {
-            const response = await this.client.post<ApiResponse<any>>(
-                '/flights/book',
-                bookingData
-            );
-            return response.data;
+            return await apiClient.post('/flights/book', bookingData);
         } catch (error) {
-            if (error instanceof FlightApiError) {
-                throw error;
-            }
-            throw new FlightApiError('Failed to create booking');
+            return this.handleError(error);
         }
     }
 
-    /**
-     * Confirm booking with payment
-     */
     async confirmBooking(
         bookingId: string,
         paymentIntentId: string
-    ): Promise<ApiResponse<any>> {
+    ): Promise<APIResponse<any>> {
         try {
-            const response = await this.client.post<ApiResponse<any>>(
-                '/flights/book/confirm',
-                {
-                    bookingId,
-                    paymentIntentId,
-                }
-            );
-            return response.data;
+            return await apiClient.post('/flights/book/confirm', {
+                bookingId,
+                paymentIntentId,
+            });
         } catch (error) {
-            if (error instanceof FlightApiError) {
-                throw error;
-            }
-            throw new FlightApiError('Failed to confirm booking');
+            return this.handleError(error);
         }
     }
 
     // ==================== BOOKING MANAGEMENT ====================
 
-    /**
-     * Get user's bookings
-     */
     async getUserBookings(
         page: number = 1,
         perPage: number = 20,
@@ -302,56 +164,28 @@ class FlightApiService {
             const params: any = { page, per_page: perPage };
             if (status) params.status = status;
 
-            const response = await this.client.get<PaginatedResponse<any>>(
-                '/flights/bookings',
-                { params }
-            );
-            return response.data;
+            return await apiClient.get('/flights/bookings', { params });
         } catch (error) {
-            if (error instanceof FlightApiError) {
-                throw error;
-            }
-            throw new FlightApiError('Failed to fetch bookings');
+            return this.handleError(error);
         }
     }
 
-    /**
-     * Get booking details
-     */
-    async getBookingDetails(bookingId: string): Promise<ApiResponse<any>> {
+    async getBookingDetails(bookingId: string): Promise<APIResponse<any>> {
         try {
-            const response = await this.client.get<ApiResponse<any>>(
-                `/flights/bookings/${bookingId}`
-            );
-            return response.data;
+            return await apiClient.get(`/flights/bookings/${bookingId}`);
         } catch (error) {
-            if (error instanceof FlightApiError) {
-                throw error;
-            }
-            throw new FlightApiError('Failed to fetch booking details');
+            return this.handleError(error);
         }
     }
 
-    /**
-     * Cancel a booking
-     */
-    async cancelBooking(bookingId: string): Promise<ApiResponse<any>> {
+    async cancelBooking(bookingId: string): Promise<APIResponse<any>> {
         try {
-            const response = await this.client.post<ApiResponse<any>>(
-                `/flights/bookings/${bookingId}/cancel`
-            );
-            return response.data;
+            return await apiClient.post(`/flights/bookings/${bookingId}/cancel`);
         } catch (error) {
-            if (error instanceof FlightApiError) {
-                throw error;
-            }
-            throw new FlightApiError('Failed to cancel booking');
+            return this.handleError(error);
         }
     }
 }
 
-// Export singleton instance
 export const flightApi = new FlightApiService();
-
-// Export default
 export default flightApi;

@@ -3,33 +3,26 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AdminDashboardLayout from "@/components/admin/AdminDashboardLayout";
+import { useAuth } from "@/lib/auth-context";
 
 export default function AdminPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        // Check if user is logged in and has admin role
-        const checkAdminAccess = async () => {
-            const token = localStorage.getItem("accessToken");
-            const userRaw = localStorage.getItem("user");
-            const user = JSON.parse(userRaw || "{}");
+    const { user, loading } = useAuth();
 
-            if (!token) {
+    useEffect(() => {
+        if (!loading) {
+            if (!user) {
                 router.push("/sign-in");
-                return;
-            }
-            if (user.role !== "admin") {
+            } else if (user.role !== "admin") {
                 alert("Access denied. Admin privileges required.");
                 router.push("/dashboard");
-                return;
+            } else {
+                setIsLoading(false);
             }
-
-            setIsLoading(false);
-        };
-
-        checkAdminAccess();
-    }, [router]);
+        }
+    }, [user, loading, router]);
 
     if (isLoading) {
         return (

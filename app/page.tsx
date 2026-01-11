@@ -12,7 +12,7 @@ import { PricingSection } from "@/components/blocks/pricing-section"
 import AboutUsSection from "@/components/ui/about-us-section"
 import FooterSection from "@/components/ui/footer-section"
 import Navbar from "@/components/ui/navbar"
-import { Plane, FileText, Users, Building2, Map, Info, Headphones } from "lucide-react"
+import { Plane, Globe, Users, Building2, Map, Info, Headphones } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 const services = [
@@ -106,8 +106,9 @@ export default function SplineSceneBasic() {
                 )}
                 onClick={() => toggleForm('quote')}
               >
-                <FileText className="h-5 w-5" />
-                <span className="font-medium">Get a Quote</span>
+                {/* <Search className="h-4 w-4" /> */}
+                <Globe className="h-4 w-4" />
+                <span className="font-medium">Explore Trips</span>
               </Button>
             </div>
 

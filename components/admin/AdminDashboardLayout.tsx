@@ -23,6 +23,7 @@ import QuotesManagementTab from "@/components/admin/tabs/QuotesManagementTab";
 import PackagesManagementTab from "@/components/admin/tabs/PackagesManagementTab";
 import PaymentsManagementTab from "@/components/admin/tabs/PaymentsManagementTab";
 import ContactMessagesTab from "@/components/admin/tabs/ContactMessagesTab";
+import { useAuth } from "@/lib/auth-context";
 
 interface TabConfig {
     id: string;
@@ -35,6 +36,7 @@ export default function AdminDashboardLayout() {
     const [activeTab, setActiveTab] = useState("dashboard");
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const router = useRouter();
+    const { logout, user } = useAuth();
 
     const tabs: TabConfig[] = [
         {
@@ -82,9 +84,7 @@ export default function AdminDashboardLayout() {
     ];
 
     const handleLogout = () => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("userRole");
-        router.push("/sign-in");
+        logout();
     };
 
     const currentTab = tabs.find((tab) => tab.id === activeTab);
@@ -124,8 +124,8 @@ export default function AdminDashboardLayout() {
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === tab.id
-                                    ? "bg-white text-indigo-600 shadow-lg"
-                                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                                ? "bg-white text-indigo-600 shadow-lg"
+                                : "text-white/80 hover:bg-white/10 hover:text-white"
                                 }`}
                         >
                             {tab.icon}
@@ -164,7 +164,7 @@ export default function AdminDashboardLayout() {
                         <div className="flex items-center gap-4">
                             <div className="text-right">
                                 <p className="text-sm font-medium text-gray-900">
-                                    {localStorage.getItem("userEmail") || "Admin"}
+                                    {user?.email || "Admin"}
                                 </p>
                                 <p className="text-xs text-gray-500">Administrator</p>
                             </div>

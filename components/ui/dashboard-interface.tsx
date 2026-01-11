@@ -1,6 +1,6 @@
 "use client"
 
-import { logout } from "@/lib/auth";
+import { useAuth } from "@/lib/auth-context";
 import { useEffect, useState } from "react";
 import {
     Activity,
@@ -48,6 +48,7 @@ import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 
 export default function DashboardInterface() {
+    const { logout } = useAuth();
     const [mounted, setMounted] = useState(false);
     const [data, setData] = useState<Array<{ name: string; total: number }>>([]);
 

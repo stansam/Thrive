@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useContactMessages } from "@/lib/hooks/use-admin-api";
+import { useContactMessages, useUpdateContactMessage, useDeleteContactMessage } from "@/lib/hooks/use-admin-api";
 import { Eye, Edit, Trash, ChevronLeft, ChevronRight, Mail, AlertCircle } from "lucide-react";
 import type { ContactMessage } from "@/lib/types/admin.d.ts";
 import {
@@ -53,6 +53,9 @@ export default function ContactMessagesTab() {
     const [selectedContact, setSelectedContact] = useState<ContactMessage | null>(null);
     const [editingContact, setEditingContact] = useState<ContactMessage | null>(null);
 
+    const { updateContact, isLoading: isUpdating } = useUpdateContactMessage();
+    const { deleteContact, isLoading: isDeleting } = useDeleteContactMessage();
+
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
             new: "bg-blue-100 text-blue-800",
@@ -76,21 +79,7 @@ export default function ContactMessagesTab() {
         if (!editingContactId) return;
 
         try {
-            const token = localStorage.getItem("accessToken");
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/admin/contacts/${editingContactId}`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(editForm),
-                }
-            );
-
-            if (!response.ok) throw new Error("Failed to update contact");
-
+            await updateContact(editingContactId, editForm);
             setEditingContactId(null);
             setEditForm({});
             refresh();
@@ -104,19 +93,7 @@ export default function ContactMessagesTab() {
         if (!deleteContactId) return;
 
         try {
-            const token = localStorage.getItem("accessToken");
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/admin/contacts/${deleteContactId}`,
-                {
-                    method: "DELETE",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                    },
-                }
-            );
-
-            if (!response.ok) throw new Error("Failed to delete contact");
-
+            await deleteContact(deleteContactId);
             setDeleteContactId(null);
             refresh();
             alert("Contact message deleted successfully!");

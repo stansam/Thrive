@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { usePayments } from "@/lib/hooks/use-admin-api";
+import { usePayments, useRefundPayment } from "@/lib/hooks/use-admin-api";
 import { Eye, DollarSign, ChevronLeft, ChevronRight } from "lucide-react";
 import type { AdminPayment } from "@/lib/types/admin.d.ts";
 import {
@@ -51,6 +51,7 @@ export default function PaymentsManagementTab() {
     });
 
     const [selectedPayment, setSelectedPayment] = useState<AdminPayment | null>(null);
+    const { refundPayment, isLoading: isRefunding } = useRefundPayment();
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
@@ -66,24 +67,7 @@ export default function PaymentsManagementTab() {
         if (!refundPaymentId || !refundAmount || !refundReason.trim()) return;
 
         try {
-            const token = localStorage.getItem("accessToken");
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/admin/payments/${refundPaymentId}/refund`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        amount: parseFloat(refundAmount),
-                        reason: refundReason,
-                    }),
-                }
-            );
-
-            if (!response.ok) throw new Error("Failed to process refund");
-
+            await refundPayment(refundPaymentId, parseFloat(refundAmount), refundReason);
             setRefundPaymentId(null);
             setRefundAmount("");
             setRefundReason("");

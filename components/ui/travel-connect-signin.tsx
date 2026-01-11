@@ -1,8 +1,10 @@
-"use client"
+
+"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/lib/auth-context";
 
 // Utils function to combine class names
 const cn = (...classes: (string | boolean | undefined)[]) => {
@@ -248,8 +250,7 @@ const DotMap = () => {
 };
 
 // API Configuration
-const API_BASE_URL_RAW = process.env.NEXT_PUBLIC_API_BASE_URL;
-const API_BASE_URL = `${API_BASE_URL_RAW}/auth`;
+const API_BASE_URL = "/api/auth";
 
 // API Service
 const authAPI = {
@@ -301,6 +302,7 @@ const SignInCard = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const { login } = useAuth();
 
     const handleEmailLogin = async () => {
         setError(null);
@@ -310,24 +312,15 @@ const SignInCard = () => {
         try {
             const response = await authAPI.login(email, password, rememberMe);
 
-            // Store tokens in memory (you can change this to use cookies or other storage methods)
-            const tokens = {
-                accessToken: response.data.tokens.accessToken,
-                refreshToken: response.data.tokens.refreshToken,
-                user: response.data.user
-            };
+            // Store tokens in memory via AuthContext
+            login(response.data.user, response.data.accessToken);
 
-            // Store in localStorage for demonstration
-            localStorage.setItem('accessToken', tokens.accessToken);
-            localStorage.setItem('refreshToken', tokens.refreshToken);
-            localStorage.setItem('user', JSON.stringify(tokens.user));
-
-            setSuccess(response.message || 'Login successful! Redirecting...');
+            setSuccess('Login successful! Redirecting...');
 
             // Redirect after successful login
             setTimeout(() => {
                 window.location.href = '/dashboard';
-            }, 1500);
+            }, 1000);
 
         } catch (err: any) {
             setError(err.message || 'An error occurred during login');
@@ -357,15 +350,13 @@ const SignInCard = () => {
                     try {
                         const result = await authAPI.googleLogin(response.credential);
 
-                        localStorage.setItem('accessToken', result.data.tokens.accessToken);
-                        localStorage.setItem('refreshToken', result.data.tokens.refreshToken);
-                        localStorage.setItem('user', JSON.stringify(result.data.user));
+                        login(result.data.user, result.data.accessToken);
 
-                        setSuccess(result.message || 'Google login successful! Redirecting...');
+                        setSuccess('Google login successful! Redirecting...');
 
                         setTimeout(() => {
                             window.location.href = '/dashboard';
-                        }, 1500);
+                        }, 1000);
 
                     } catch (err: any) {
                         setError(err.message || 'Google authentication failed');

@@ -11,7 +11,7 @@ import { useRouter } from 'next/navigation';
 import { flightService } from '@/services/flight-service';
 import { FlightOffer } from '@/lib/types/flight';
 import { BookingWizard } from '@/components/booking-wizard';
-import { useAuth } from "@/lib/auth_context";
+import { useAuth } from "@/lib/auth-context";
 import {
     AlertDialog,
     AlertDialogAction,

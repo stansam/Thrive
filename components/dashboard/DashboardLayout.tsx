@@ -33,7 +33,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { logout } from '@/lib/auth';
+import { useAuth } from '@/lib/auth-context';
 import { useProfile, useNotifications } from '@/lib/hooks/use-dashboard-api';
 import type { Notification } from '@/lib/types/dashboard';
 
@@ -65,14 +65,15 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children, activeTab, onTabChange }: DashboardLayoutProps) {
     const router = useRouter();
+    const { logout } = useAuth();
     const { profile } = useProfile();
     const { notifications } = useNotifications({ unreadOnly: true, perPage: 5 });
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleLogout = async () => {
-        await logout();
-        router.push('/signin');
+        logout();
+        // router.push('/signin'); // logout in context already redirects
     };
 
     const unreadCount = notifications?.length || 0;

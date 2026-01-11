@@ -81,10 +81,8 @@ export function SearchAutocomplete({
         <div className={cn("relative w-full z-50", className)}>
             <Command
                 shouldFilter={false}
-                className="rounded-lg border border-white/20 bg-black/50 overflow-visible backdrop-blur-sm"
-            >
+                className="rounded-lg border border-white/20 bg-black/50 overflow-visible backdrop-blur-sm ">
                 <div className="flex items-center border-b border-white/10 px-3" cmdk-input-wrapper="">
-                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50 text-white" />
                     <CommandInput
                         placeholder={placeholder}
                         value={query}

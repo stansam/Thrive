@@ -282,3 +282,7 @@ export interface APIError {
     message: string;
     errors?: Record<string, string>;
 }
+export interface PaginatedResponse<T> {
+    data: T[];
+    pagination: PaginationInfo;
+}

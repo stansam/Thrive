@@ -38,19 +38,19 @@ export function SearchTripsForm({ className }: { className?: string }) {
         <Card className={cn("w-[90vw] max-w-[450px] p-6 bg-black/80 backdrop-blur-md border border-white/20 text-white shadow-2xl", className)}>
             <div className="space-y-6">
                 <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-bold tracking-tight">Search Your Next Trip</h2>
+                    <h2 className="text-2xl font-bold tracking-tight">Find Your Next Trip</h2>
                     <p className="text-sm text-neutral-400">Discover curated packages and exclusive deals.</p>
                 </div>
 
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <Label className="text-xs font-medium text-neutral-300 uppercase tracking-wider">Destination / Package</Label>
+                        <Label className="text-xs font-medium text-neutral-300 tracking-wider">Destination / Package</Label>
                         <SearchAutocomplete />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label className="text-xs font-medium text-neutral-300 uppercase tracking-wider">Duration</Label>
+                            <Label className="text-xs font-medium text-neutral-300 tracking-wider">Duration</Label>
                             <Select value={duration} onValueChange={setDuration}>
                                 <SelectTrigger className="bg-black/50 border-white/10 text-white">
                                     <SelectValue placeholder="Any Duration" />
@@ -64,7 +64,7 @@ export function SearchTripsForm({ className }: { className?: string }) {
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-xs font-medium text-neutral-300 uppercase tracking-wider">Budget</Label>
+                            <Label className="text-xs font-medium text-neutral-300 tracking-wider">Budget</Label>
                             <Select value={budget} onValueChange={setBudget}>
                                 <SelectTrigger className="bg-black/50 border-white/10 text-white">
                                     <SelectValue placeholder="Any Budget" />
@@ -80,7 +80,7 @@ export function SearchTripsForm({ className }: { className?: string }) {
                     </div>
 
                     <div className="pt-2">
-                        <Label className="text-xs font-medium text-neutral-300 uppercase tracking-wider mb-2 block">Travel Style</Label>
+                        <Label className="text-xs font-medium text-neutral-300 tracking-wider mb-2 block">Travel Style</Label>
                         <RadioGroup defaultValue="all" className="flex gap-4">
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="all" id="r-all" className="border-white text-emerald-500" />

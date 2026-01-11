@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { usePackages } from "@/lib/hooks/use-admin-api";
+import { usePackages, useCreatePackage, useUpdatePackage } from "@/lib/hooks/use-admin-api";
 import { Eye, Edit, Plus, Ban, ChevronLeft, ChevronRight } from "lucide-react";
 import type { AdminPackage } from "@/lib/types/admin.d.ts";
 import {
@@ -32,23 +32,12 @@ export default function PackagesManagementTab() {
     const [selectedPackage, setSelectedPackage] = useState<AdminPackage | null>(null);
     const [editingPackage, setEditingPackage] = useState<AdminPackage | null>(null);
 
+    const { createPackage, isLoading: isCreatingPackage } = useCreatePackage();
+    const { updatePackage, isLoading: isUpdatingPackage } = useUpdatePackage();
+
     const handleCreatePackage = async () => {
         try {
-            const token = localStorage.getItem("accessToken");
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/admin/packages`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(formData),
-                }
-            );
-
-            if (!response.ok) throw new Error("Failed to create package");
-
+            await createPackage(formData);
             setIsCreating(false);
             setFormData({});
             refresh();
@@ -62,21 +51,7 @@ export default function PackagesManagementTab() {
         if (!editingPackageId) return;
 
         try {
-            const token = localStorage.getItem("accessToken");
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/admin/packages/${editingPackageId}`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(formData),
-                }
-            );
-
-            if (!response.ok) throw new Error("Failed to update package");
-
+            await updatePackage(editingPackageId, formData);
             setEditingPackageId(null);
             setFormData({});
             refresh();

@@ -1,12 +1,14 @@
 /**
  * API Client for Dashboard endpoints
- * Handles authentication, error handling, and request/response formatting
+ * Handles authentication, error handling, auto-refresh, and request/response formatting
  */
 
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 import type { APIResponse, APIError } from './types/dashboard';
+import { tokenManager } from './auth/token-manager';
 
 // Create axios instance with default config
+// Note: This matches the existing configuration but removes manual localStorage handling here
 const apiClient = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000',
     headers: {
@@ -15,15 +17,32 @@ const apiClient = axios.create({
     timeout: 30000, // 30 seconds
 });
 
-// Request interceptor - add auth token
+// Flag to prevent multiple refresh calls
+let isRefreshing = false;
+// Queue for failed requests
+let failedQueue: Array<{
+    resolve: (token: string) => void;
+    reject: (error: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach(prom => {
+        if (error) {
+            prom.reject(error);
+        } else {
+            prom.resolve(token!);
+        }
+    });
+
+    failedQueue = [];
+};
+
+// Request interceptor - add auth token from TokenManager
 apiClient.interceptors.request.use(
     (config) => {
-        // Get token from localStorage
-        if (typeof window !== 'undefined') {
-            const token = localStorage.getItem('accessToken');
-            if (token) {
-                config.headers.Authorization = `Bearer ${token}`;
-            }
+        const token = tokenManager.getAccessToken();
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
@@ -38,35 +57,70 @@ apiClient.interceptors.response.use(
         // Return the data directly for successful responses
         return response.data;
     },
-    (error: AxiosError<APIError>) => {
-        // Handle different error scenarios
-        if (error.response) {
-            const { status, data } = error.response;
+    async (error: AxiosError<APIError>) => {
+        const originalRequest = error.config as any;
 
-            // Token expired or invalid - redirect to login
-            if (status === 401) {
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('accessToken');
-                    localStorage.removeItem('refreshToken');
-                    window.location.href = '/sign-in?redirect=' + encodeURIComponent(window.location.pathname);
-                }
+        // Extract error data
+        let errorData = error.response?.data || { success: false, message: error.message || 'An unexpected error occurred' };
+
+        // Handle 401 Unauthorized (Token Expired)
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            if (isRefreshing) {
+                // If already refreshing, queue this request
+                return new Promise(function (resolve, reject) {
+                    failedQueue.push({ resolve, reject });
+                }).then(token => {
+                    originalRequest.headers['Authorization'] = 'Bearer ' + token;
+                    return apiClient(originalRequest);
+                }).catch(err => {
+                    return Promise.reject(err);
+                });
             }
 
-            // Return error data
-            return Promise.reject(data || { success: false, message: 'An error occurred' });
-        } else if (error.request) {
-            // Request made but no response received
-            return Promise.reject({
-                success: false,
-                message: 'Network error. Please check your connection.',
-            });
-        } else {
-            // Something else happened
-            return Promise.reject({
-                success: false,
-                message: error.message || 'An unexpected error occurred',
-            });
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                // Call the Next.js Proxy Refresh endpoint
+                // We use fetch here to avoid using the same axios instance and causing loops
+                const refreshResponse = await fetch('/api/auth/refresh', {
+                    method: 'POST',
+                });
+
+                const refreshData = await refreshResponse.json();
+
+                if (!refreshResponse.ok) {
+                    throw new Error(refreshData.message || 'Refresh failed');
+                }
+
+                const { accessToken } = refreshData.data;
+
+                // Update token manager
+                tokenManager.setAccessToken(accessToken);
+
+                // Process queue
+                processQueue(null, accessToken);
+
+                // Retry original request
+                originalRequest.headers['Authorization'] = 'Bearer ' + accessToken;
+                return apiClient(originalRequest);
+
+            } catch (refreshError) {
+                processQueue(refreshError, null);
+                // Clear state on failure
+                tokenManager.clearToken();
+                // Optionally redirect to login, but AuthContext usually handles the "user is null" state
+                if (typeof window !== 'undefined') {
+                    window.location.href = '/sign-in'; // Enforce login redirect
+                }
+                return Promise.reject(errorData);
+            } finally {
+                isRefreshing = false;
+            }
         }
+
+        // Return standardized error rejection
+        return Promise.reject(errorData);
     }
 );
 

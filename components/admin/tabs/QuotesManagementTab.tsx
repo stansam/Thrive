@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useQuotes } from "@/lib/hooks/use-admin-api";
+import { useQuotes, useUpdateQuote } from "@/lib/hooks/use-admin-api";
 import { Eye, Edit, ChevronLeft, ChevronRight } from "lucide-react";
 import type { AdminQuote } from "@/lib/types/admin.d.ts";
 import {
@@ -40,6 +40,7 @@ export default function QuotesManagementTab() {
 
     const [selectedQuote, setSelectedQuote] = useState<AdminQuote | null>(null);
     const [editingQuote, setEditingQuote] = useState<AdminQuote | null>(null);
+    const { updateQuote, isLoading: isUpdating } = useUpdateQuote();
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
@@ -56,21 +57,7 @@ export default function QuotesManagementTab() {
         if (!editingQuoteId) return;
 
         try {
-            const token = localStorage.getItem("accessToken");
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/admin/quotes/${editingQuoteId}`,
-                {
-                    method: "PATCH",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(editForm),
-                }
-            );
-
-            if (!response.ok) throw new Error("Failed to update quote");
-
+            await updateQuote(editingQuoteId, editForm);
             setEditingQuoteId(null);
             setEditForm({});
             refresh();

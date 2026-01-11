@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { Eye, EyeOff, ArrowRight, Check, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
 
 // Utils function to combine class names
 const cn = (...classes: (string | boolean | undefined)[]) => {
@@ -178,8 +180,12 @@ const DotMap = () => {
 
 // SignUpCard Component
 const SignUpCard = () => {
+    const router = useRouter();
+    const { loginWithTokens } = useAuth();
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const [formData, setFormData] = useState({
         fullName: "",
@@ -194,13 +200,49 @@ const SignUpCard = () => {
     const isPasswordMatch = formData.password && formData.confirmPassword && formData.password === formData.confirmPassword;
     const isPasswordLength = formData.password.length >= 8;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError("");
+
         if (!isPasswordMatch) {
-            console.error("Passwords do not match");
+            setError("Passwords do not match");
             return;
         }
-        console.log("Sign up attempts with:", formData);
+
+        setIsLoading(true);
+
+        try {
+            // Call Register Proxy
+            const response = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    first_name: formData.fullName.split(' ')[0] || 'User',
+                    last_name: formData.fullName.split(' ').slice(1).join(' ') || '',
+                    email: formData.email,
+                    password: formData.password,
+                    confirmPassword: formData.confirmPassword
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Registration failed');
+            }
+
+            // Success: Update Auth Context and Redirect
+            if (data.success && data.data) {
+                loginWithTokens(data.data.user, data.data.accessToken);
+                router.push('/dashboard');
+            }
+
+        } catch (err: any) {
+            console.error("Registration error:", err);
+            setError(err.message || "Something went wrong. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -255,6 +297,14 @@ const SignUpCard = () => {
                     >
                         <h1 className="text-2xl md:text-3xl font-bold mb-1">Create Account</h1>
                         <p className="text-gray-400 mb-8">Get started with Thrive Travel</p>
+
+                        <p className="text-gray-400 mb-8">Get started with Thrive Travel</p>
+
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded text-red-200 text-sm">
+                                {error}
+                            </div>
+                        )}
 
                         <div className="mb-6">
                             <button
@@ -379,15 +429,15 @@ const SignUpCard = () => {
                             >
                                 <Button
                                     type="submit"
-                                    disabled={!isPasswordMatch || !isPasswordLength}
+                                    disabled={!isPasswordMatch || !isPasswordLength || isLoading}
                                     className={cn(
                                         "w-full bg-gradient-to-r relative overflow-hidden from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-2 rounded-lg transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed",
                                         isHovered ? "shadow-lg shadow-blue-500/25" : ""
                                     )}
                                 >
                                     <span className="flex items-center justify-center">
-                                        Create Account
-                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                        {isLoading ? "Creating Account..." : "Create Account"}
+                                        {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
                                     </span>
                                     {isHovered && (
                                         <motion.span

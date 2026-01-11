@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useBookings, useBooking, useUpdateBooking } from "@/lib/hooks/use-admin-api";
+import { useBookings, useBooking, useUpdateBooking, useCancelBooking } from "@/lib/hooks/use-admin-api";
 import { Eye, Edit, Ban, ChevronLeft, ChevronRight } from "lucide-react";
 import type { AdminBooking } from "@/lib/types/admin.d.ts";
 import {
@@ -54,6 +54,7 @@ export default function BookingsManagementTab() {
     const { booking: selectedBooking, isLoading: loadingBooking } = useBooking(selectedBookingId);
     const { booking: editingBooking, isLoading: loadingEditBooking } = useBooking(editingBookingId);
     const { updateBooking, isLoading: updating } = useUpdateBooking();
+    const { cancelBooking, isLoading: cancelling } = useCancelBooking();
 
     const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
@@ -84,22 +85,7 @@ export default function BookingsManagementTab() {
         if (!cancelBookingId || !cancelReason.trim()) return;
 
         try {
-            // Use the cancel endpoint
-            const token = localStorage.getItem("accessToken");
-            const response = await fetch(
-                `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/admin/bookings/${cancelBookingId}/cancel`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ reason: cancelReason }),
-                }
-            );
-
-            if (!response.ok) throw new Error("Failed to cancel booking");
-
+            await cancelBooking(cancelBookingId, cancelReason);
             setCancelBookingId(null);
             setCancelReason("");
             refresh();
