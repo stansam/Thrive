@@ -9,8 +9,9 @@ import { useState } from 'react';
 import { SWRConfig } from 'swr';
 import DashboardLayout, { type DashboardTab } from '@/components/dashboard/DashboardLayout';
 import DashboardTabComponent from '@/components/dashboard/tabs/DashboardTab';
-import MyBookingsTab from '@/components/dashboard/tabs/MyBookingsTab';
-import MyTripsTab from '@/components/dashboard/tabs/MyTripsTab';
+import FlightsTab from '@/components/dashboard/tabs/FlightsTab';
+import MyPackagesTab from '@/components/dashboard/tabs/MyPackagesTab';
+import ExplorePackagesTab from '@/components/dashboard/tabs/ExplorePackagesTab';
 import ContactTab from '@/components/dashboard/tabs/ContactTab';
 import ProfileSection from '@/components/dashboard/sections/ProfileSection';
 import SubscriptionsSection from '@/components/dashboard/sections/SubscriptionsSection';
@@ -23,10 +24,12 @@ export default function DashboardPage() {
         switch (activeTab) {
             case 'dashboard':
                 return <DashboardTabComponent />;
-            case 'bookings':
-                return <MyBookingsTab />;
-            case 'trips':
-                return <MyTripsTab />;
+            case 'flights':
+                return <FlightsTab />;
+            case 'my-packages':
+                return <MyPackagesTab />;
+            case 'explore-packages':
+                return <ExplorePackagesTab />;
             case 'contact':
                 return <ContactTab />;
             case 'profile':

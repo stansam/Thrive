@@ -20,6 +20,8 @@ import {
     LifeBuoy,
     Bell,
     Menu,
+    Package as PackageIcon,
+    Compass
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -33,12 +35,19 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
 import { useAuth } from '@/lib/auth-context';
 import { useProfile, useNotifications } from '@/lib/hooks/use-dashboard-api';
 import type { Notification } from '@/lib/types/dashboard';
+import { cn } from '@/lib/utils';
 
 // Tab configuration
-export type DashboardTab = 'dashboard' | 'bookings' | 'trips' | 'contact' | 'profile' | 'subscriptions' | 'settings';
+export type DashboardTab = 'dashboard' | 'flights' | 'my-packages' | 'explore-packages' | 'contact' | 'profile' | 'subscriptions' | 'settings';
 
 interface TabConfig {
     id: DashboardTab;
@@ -49,8 +58,6 @@ interface TabConfig {
 
 const tabs: TabConfig[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'main' },
-    { id: 'bookings', label: 'My Bookings', icon: Plane, section: 'main' },
-    { id: 'trips', label: 'My Trips & Tours', icon: MapPin, section: 'main' },
     { id: 'contact', label: 'Contact Us', icon: MessageSquare, section: 'main' },
     { id: 'profile', label: 'Profile', icon: Users, section: 'sidebar' },
     { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard, section: 'sidebar' },
@@ -81,7 +88,6 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
         ? `${profile.firstName?.[0] || ''}${profile.lastName?.[0] || ''}`.toUpperCase()
         : 'U';
 
-    const mainTabs = tabs.filter(t => t.section === 'main');
     const sidebarTabs = tabs.filter(t => t.section === 'sidebar');
 
     const renderNavLink = (tab: TabConfig, isMobile = false) => {
@@ -95,16 +101,116 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                     onTabChange(tab.id);
                     if (isMobile) setMobileMenuOpen(false);
                 }}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-primary hover:bg-muted'
-                    } ${isMobile ? 'text-lg' : 'text-sm font-medium'}`}
+                className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                    isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
+                    isMobile ? 'text-lg' : 'text-sm font-medium'
+                )}
             >
                 <Icon className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
                 {tab.label}
             </button>
         );
     };
+
+    const NavigationContent = ({ isMobile = false }) => (
+        <div className="flex-1 overflow-auto py-4">
+            <nav className="flex flex-col px-4 text-sm font-medium gap-1">
+                {renderNavLink({ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, isMobile)}
+
+                {/* My Trips Accordion */}
+                <Accordion type="single" collapsible className="w-full border-none">
+                    <AccordionItem value="my-trips" className="border-none">
+                        <AccordionTrigger
+                            className={cn(
+                                "py-2 px-3 text-muted-foreground hover:text-primary hover:bg-muted hover:no-underline rounded-lg",
+                                (activeTab === 'flights' || activeTab === 'my-packages' || activeTab === 'explore-packages') ? 'text-primary font-semibold' : ''
+                            )}
+                        >
+                            <span className={cn("flex items-center gap-3", isMobile ? 'text-lg' : 'text-sm font-medium')}>
+                                <MapPin className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> My Trips
+                            </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-0 pl-7">
+                            <div className="flex flex-col gap-1 mt-1 border-l-2 border-neutral-100 dark:border-neutral-800 pl-2">
+                                <button
+                                    onClick={() => {
+                                        onTabChange('flights');
+                                        if (isMobile) setMobileMenuOpen(false);
+                                    }}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                        activeTab === 'flights' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
+                                        isMobile ? 'text-lg' : 'text-sm font-medium'
+                                    )}
+                                >
+                                    <Plane className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> Flights
+                                </button>
+
+                                {/* Packages Nested Accordion */}
+                                <Accordion type="single" collapsible className="w-full border-none">
+                                    <AccordionItem value="packages" className="border-none">
+                                        <AccordionTrigger
+                                            className={cn(
+                                                "py-2 px-3 text-muted-foreground hover:text-primary hover:bg-muted hover:no-underline rounded-lg",
+                                                (activeTab === 'my-packages' || activeTab === 'explore-packages') ? 'text-primary font-semibold' : ''
+                                            )}
+                                        >
+                                            <span className={cn("flex items-center gap-3", isMobile ? 'text-lg' : 'text-sm font-medium')}>
+                                                <PackageIcon className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> Packages
+                                            </span>
+                                        </AccordionTrigger>
+                                        <AccordionContent className="pb-0 pl-6">
+                                            <div className="flex flex-col gap-1 mt-1 border-l-2 border-neutral-100 dark:border-neutral-800 pl-2">
+                                                <button
+                                                    onClick={() => {
+                                                        onTabChange('my-packages');
+                                                        if (isMobile) setMobileMenuOpen(false);
+                                                    }}
+                                                    className={cn(
+                                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                                        activeTab === 'my-packages' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
+                                                        isMobile ? 'text-lg' : 'text-sm font-medium'
+                                                    )}
+                                                >
+                                                    <PackageIcon className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> My Packages
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        onTabChange('explore-packages');
+                                                        if (isMobile) setMobileMenuOpen(false);
+                                                    }}
+                                                    className={cn(
+                                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                                        activeTab === 'explore-packages' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
+                                                        isMobile ? 'text-lg' : 'text-sm font-medium'
+                                                    )}
+                                                >
+                                                    <Compass className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> Explore Packages
+                                                </button>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+
+                {renderNavLink({ id: 'contact', label: 'Contact Us', icon: MessageSquare }, isMobile)}
+            </nav>
+
+            {/* Sidebar Sections */}
+            <div className="mt-6 px-4">
+                <div className="text-xs font-semibold text-muted-foreground mb-2 px-3">
+                    ACCOUNT
+                </div>
+                <nav className="grid items-start gap-1">
+                    {sidebarTabs.map(tab => renderNavLink(tab, isMobile))}
+                </nav>
+            </div>
+        </div>
+    );
 
     return (
         <div className="flex h-screen w-full flex-col bg-muted/20 md:flex-row overflow-hidden">
@@ -119,21 +225,7 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                 </div>
 
                 {/* Main Navigation */}
-                <div className="flex-1 overflow-auto py-4">
-                    <nav className="grid items-start px-4 text-sm font-medium gap-1">
-                        {mainTabs.map(tab => renderNavLink(tab))}
-                    </nav>
-
-                    {/* Sidebar Sections */}
-                    <div className="mt-6 px-4">
-                        <div className="text-xs font-semibold text-muted-foreground mb-2 px-3">
-                            ACCOUNT
-                        </div>
-                        <nav className="grid items-start gap-1">
-                            {sidebarTabs.map(tab => renderNavLink(tab))}
-                        </nav>
-                    </div>
-                </div>
+                <NavigationContent />
 
                 {/* Bottom Actions */}
                 <div className="mt-auto border-t p-4">
@@ -173,19 +265,7 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                     <span>Thrive Agency</span>
                                 </Link>
                             </div>
-                            <div className="flex-1 overflow-auto py-4">
-                                <nav className="grid gap-2 px-4">
-                                    {mainTabs.map(tab => renderNavLink(tab, true))}
-                                </nav>
-                                <div className="mt-6 px-4">
-                                    <div className="text-xs font-semibold text-muted-foreground mb-2 px-3">
-                                        ACCOUNT
-                                    </div>
-                                    <nav className="grid gap-2">
-                                        {sidebarTabs.map(tab => renderNavLink(tab, true))}
-                                    </nav>
-                                </div>
-                            </div>
+                            <NavigationContent isMobile={true} />
                             <div className="border-t p-4">
                                 <button
                                     onClick={() => {
@@ -210,8 +290,8 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
 
                     {/* Page Title */}
                     <div className="flex-1">
-                        <h1 className="text-lg font-semibold md:text-2xl">
-                            {tabs.find(t => t.id === activeTab)?.label || 'Dashboard'}
+                        <h1 className="text-lg font-semibold md:text-2xl capitalize">
+                            {activeTab.replace(/-/g, ' ') || 'Dashboard'}
                         </h1>
                     </div>
 
