@@ -12,6 +12,46 @@ const cn = (...classes: (string | boolean | undefined)[]) => {
     return classes.filter(Boolean).join(" ");
 };
 
+// API Configuration
+const API_BASE_URL = "/api/auth";
+
+// API Service
+const authAPI = {
+    register: async (data: any) => {
+        const response = await fetch(`${API_BASE_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const resData = await response.json();
+
+        if (!response.ok) {
+            throw new Error(resData.message || 'Registration failed');
+        }
+
+        return resData;
+    },
+
+    googleLogin: async (idToken: string) => {
+        const response = await fetch(`${API_BASE_URL}/google`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idToken }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Google login failed');
+        }
+
+        return data;
+    }
+};
+
 // Custom Button Component
 const Button = React.forwardRef<
     HTMLButtonElement,
@@ -181,7 +221,7 @@ const DotMap = () => {
 // SignUpCard Component
 const SignUpCard = () => {
     const router = useRouter();
-    const { loginWithTokens } = useAuth();
+    const { login } = useAuth();
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -200,6 +240,60 @@ const SignUpCard = () => {
     const isPasswordMatch = formData.password && formData.confirmPassword && formData.password === formData.confirmPassword;
     const isPasswordLength = formData.password.length >= 8;
 
+    const handleGoogleLogin = async () => {
+        setError("");
+
+        try {
+            if (typeof window.google === 'undefined') {
+                throw new Error('Google Sign-In SDK not loaded. Please refresh and try again.');
+            }
+
+            // Create a temporary container for the Google button for the JS API to use
+            const buttonContainer = document.createElement('div');
+            buttonContainer.id = 'google-signin-button-hidden';
+            buttonContainer.style.display = 'none';
+            document.body.appendChild(buttonContainer);
+
+            window.google.accounts.id.initialize({
+                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!!,
+                callback: async (response: any) => {
+                    setIsLoading(true);
+                    try {
+                        const result = await authAPI.googleLogin(response.credential);
+                        login(result.data.user, result.data.accessToken);
+                        router.push('/dashboard');
+                    } catch (err: any) {
+                        setError(err.message || 'Google authentication failed');
+                        setIsLoading(false);
+                    } finally {
+                        buttonContainer.remove();
+                    }
+                }
+            });
+
+            // Render button and click it
+            window.google.accounts.id.renderButton(
+                buttonContainer,
+                { theme: 'outline', size: 'large' }
+            );
+
+            const googleBtn = buttonContainer.querySelector('div[role="button"]') as HTMLElement;
+            if (googleBtn) {
+                googleBtn.click();
+            } else {
+                // Fallback if button isn't created immediately
+                window.google.accounts.id.prompt((notification: any) => {
+                    if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                        console.log("Google prompt not displayed", notification);
+                    }
+                });
+            }
+
+        } catch (err: any) {
+            setError(err.message || 'Google login failed');
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
@@ -212,28 +306,18 @@ const SignUpCard = () => {
         setIsLoading(true);
 
         try {
-            // Call Register Proxy
-            const response = await fetch('/api/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    first_name: formData.fullName.split(' ')[0] || 'User',
-                    last_name: formData.fullName.split(' ').slice(1).join(' ') || '',
-                    email: formData.email,
-                    password: formData.password,
-                    confirmPassword: formData.confirmPassword
-                })
+            // Call Register Proxy found in authAPI
+            const data = await authAPI.register({
+                first_name: formData.fullName.split(' ')[0] || 'User',
+                last_name: formData.fullName.split(' ').slice(1).join(' ') || '',
+                email: formData.email,
+                password: formData.password,
+                confirmPassword: formData.confirmPassword
             });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || 'Registration failed');
-            }
 
             // Success: Update Auth Context and Redirect
             if (data.success && data.data) {
-                loginWithTokens(data.data.user, data.data.accessToken);
+                login(data.data.user, data.data.accessToken);
                 router.push('/dashboard');
             }
 
@@ -298,8 +382,6 @@ const SignUpCard = () => {
                         <h1 className="text-2xl md:text-3xl font-bold mb-1">Create Account</h1>
                         <p className="text-gray-400 mb-8">Get started with Thrive Travel</p>
 
-                        <p className="text-gray-400 mb-8">Get started with Thrive Travel</p>
-
                         {error && (
                             <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded text-red-200 text-sm">
                                 {error}
@@ -309,7 +391,8 @@ const SignUpCard = () => {
                         <div className="mb-6">
                             <button
                                 className="w-full flex items-center justify-center gap-2 bg-[#13151f] border border-[#2a2d3a] rounded-lg p-3 hover:bg-[#1a1d2b] transition-all duration-300 cursor-pointer"
-                                onClick={() => console.log("Google sign-up")}
+                                onClick={handleGoogleLogin}
+                                type="button"
                             >
                                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                                     <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fillOpacity=".54" />
