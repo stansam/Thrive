@@ -31,8 +31,8 @@ export function useExplorePackages(params: any = {}) {
     );
 
     return {
-        featured: data?.featured || [],
-        packages: data?.all_packages || [],
+        featured: data?.data?.featured || [],
+        packages: data?.data?.all_packages || [],
         isLoading,
         isError: error,
         mutate
@@ -51,8 +51,8 @@ export function useMyPackages(params: any = {}) {
     );
 
     return {
-        booked: data?.booked || [],
-        saved: data?.saved || [],
+        booked: data?.data?.booked || [],
+        saved: data?.data?.saved || [],
         isLoading,
         isError: error,
         mutate
@@ -61,16 +61,12 @@ export function useMyPackages(params: any = {}) {
 
 export function usePackageDetails(id: string | null) {
     const { data, error, isLoading, mutate } = useSWR(
-        id ? `/api/dashboard/bookings/${id}` : null, // Assuming package bookings use same booking endpoint or specific one. api_specs said /bookings/[id] works for both? Let's check api_specs.
-        // api_specs: GET /api/dashboard/flights/[id] and /api/dashboard/packages/explore? 
-        // Docs say: GET `/api/dashboard/bookings/[id]` for generic details?
-        // Implementation Plan said: `/app/api/dashboard/bookings/[id]/route.ts`.
-        // So I will use that.
+        id ? `/api/dashboard/bookings/${id}` : null,
         fetcher
     );
 
     return {
-        booking: data,
+        booking: data?.data?.booking,
         isLoading,
         isError: error,
         mutate

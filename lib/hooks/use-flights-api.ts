@@ -32,8 +32,8 @@ export function useFlights(params: any = {}) {
     );
 
     return {
-        flights: data?.flights || [],
-        summary: data?.summary,
+        flights: data?.data?.flights || [],
+        summary: data?.data?.summary,
         isLoading,
         isError: error,
         mutate
@@ -47,7 +47,7 @@ export function useFlightDetails(id: string | null) {
     );
 
     return {
-        booking: data,
+        booking: data?.data?.booking,
         isLoading,
         isError: error,
         mutate
