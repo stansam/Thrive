@@ -5,7 +5,7 @@
  * Provides fixed sidebar navigation and dynamic content area for dashboard tabs
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -78,6 +78,20 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    // Accordion State
+    const [mainAccordionValue, setMainAccordionValue] = useState<string>('');
+    const [subAccordionValue, setSubAccordionValue] = useState<string>('');
+
+    // Sync Accordion state with Active Tab
+    useEffect(() => {
+        if (activeTab === 'flights') {
+            setMainAccordionValue('my-trips');
+        } else if (activeTab === 'my-packages' || activeTab === 'explore-packages') {
+            setMainAccordionValue('my-trips');
+            setSubAccordionValue('packages');
+        }
+    }, [activeTab]);
+
     const handleLogout = async () => {
         logout();
         // router.push('/signin'); // logout in context already redirects
@@ -123,7 +137,8 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                     type="single"
                     collapsible
                     className="w-full border-none"
-                    value={(activeTab === 'flights' || activeTab === 'my-packages' || activeTab === 'explore-packages') ? 'my-trips' : ''}
+                    value={mainAccordionValue}
+                    onValueChange={setMainAccordionValue}
                 >
                     <AccordionItem value="my-trips" className="border-none">
                         <AccordionTrigger
@@ -157,7 +172,8 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                     type="single"
                                     collapsible
                                     className="w-full border-none"
-                                    value={(activeTab === 'my-packages' || activeTab === 'explore-packages') ? 'packages' : ''}
+                                    value={subAccordionValue}
+                                    onValueChange={setSubAccordionValue}
                                 >
                                     <AccordionItem value="packages" className="border-none">
                                         <AccordionTrigger
@@ -206,7 +222,6 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
-
                 {renderNavLink({ id: 'contact', label: 'Contact Us', icon: MessageSquare }, isMobile)}
             </nav>
 
