@@ -307,7 +307,7 @@ export default function SubscriptionsSection() {
 
                                     <CardFooter className="pt-4">
                                         <Tooltip>
-                                            <TooltipTrigger asChild max-w-full w-full>
+                                            <TooltipTrigger asChild>
                                                 <div className="w-full">
                                                     <Button
                                                         className="w-full"

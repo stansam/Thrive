@@ -33,9 +33,13 @@ import { AlertCircle, Download, Search, Filter, RefreshCcw, CreditCard, RotateCc
 import { format } from 'date-fns';
 import { ExtendedPayment } from '@/lib/types/dashboard';
 
+import { DateRange } from "react-day-picker";
+import { DatePickerWithRange } from "@/components/ui/date-range-picker";
+
 export default function PaymentsSection() {
     const [page, setPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState('all');
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
     // We handle search locally or via API if supported - backend plan supports status/date
     // The requirement mentions search by reference ID. The backend currently filters by status/date.
@@ -49,6 +53,8 @@ export default function PaymentsSection() {
         page,
         perPage: 10,
         status: statusFilter !== 'all' ? statusFilter : undefined,
+        fromDate: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+        toDate: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
     });
 
     const handleStatusChange = (value: string) => {
@@ -157,7 +163,7 @@ export default function PaymentsSection() {
                         </div>
                         <p className="text-xs text-muted-foreground">
                             {payments && payments.length > 0
-                                ? format(new Date(payments[0].createdAt), 'MMM dd, yyyy')
+                                ? format(new Date(payments[0].created_at), 'MMM dd, yyyy')
                                 : 'No payments yet'}
                         </p>
                     </CardContent>
@@ -185,7 +191,9 @@ export default function PaymentsSection() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
+                        {/* /> */}
                     </div>
+                    <DatePickerWithRange date={dateRange} setDate={setDateRange} />
                     <Select value={statusFilter} onValueChange={handleStatusChange}>
                         <SelectTrigger className="w-[140px]">
                             <Filter className="mr-2 h-4 w-4" />
@@ -235,9 +243,9 @@ export default function PaymentsSection() {
                                 filteredPayments.map((payment) => (
                                     <TableRow key={payment.id}>
                                         <TableCell className="font-medium">
-                                            {format(new Date(payment.createdAt), 'MMM dd, yyyy')}
+                                            {format(new Date(payment.created_at), 'MMM dd, yyyy')}
                                             <div className="text-xs text-muted-foreground">
-                                                {format(new Date(payment.createdAt), 'h:mm a')}
+                                                {format(new Date(payment.created_at), 'h:mm a')}
                                             </div>
                                         </TableCell>
                                         <TableCell>

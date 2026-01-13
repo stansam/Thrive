@@ -148,6 +148,12 @@ export const dashboardAPI = {
         return apiClient.get<any, APIResponse>('/client/dashboard/payments', { params });
     },
 
+    downloadInvoice: (paymentId: string) => {
+        return apiClient.get(`/client/dashboard/payments/${paymentId}/invoice`, {
+            responseType: 'blob'
+        });
+    },
+
     // Subscriptions
     getSubscriptions: () => {
         return apiClient.get<any, APIResponse>('/client/dashboard/subscriptions');

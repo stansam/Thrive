@@ -108,8 +108,8 @@ export interface Payment {
     cardBrand?: string;
     payment_metadata?: any;
     failure_reason?: string;
-    paidAt?: string;
-    createdAt: string;
+    paid_at?: string;
+    created_at: string;
 }
 
 export interface Booking {
