@@ -28,6 +28,12 @@ export default function ProfileSection() {
         phone: '',
         nationality: '',
         dateOfBirth: '',
+        passportNumber: '',
+        passportExpiry: '',
+        preferredAirline: '',
+        dietaryPreferences: '',
+        specialAssistance: '',
+        billingAddress: '',
     });
 
     // Initialize form data when profile loads
@@ -38,6 +44,12 @@ export default function ProfileSection() {
             phone: profile.phone || '',
             nationality: profile.nationality || '',
             dateOfBirth: profile.dateOfBirth || '',
+            passportNumber: profile.passportNumber || '',
+            passportExpiry: profile.passportExpiry || '',
+            preferredAirline: profile.preferredAirline || '',
+            dietaryPreferences: profile.dietaryPreferences || '',
+            specialAssistance: profile.specialAssistance || '',
+            billingAddress: profile.billingAddress || '',
         });
     }
 
@@ -58,17 +70,23 @@ export default function ProfileSection() {
     };
 
     const handleCancel = () => {
+        setIsEditing(false);
+        setSaveStatus('idle');
         if (profile) {
             setFormData({
-                firstName: profile.firstName || '',
-                lastName: profile.lastName || '',
+                firstName: profile.firstName,
+                lastName: profile.lastName,
                 phone: profile.phone || '',
                 nationality: profile.nationality || '',
                 dateOfBirth: profile.dateOfBirth || '',
+                passportNumber: profile.passportNumber || '',
+                passportExpiry: profile.passportExpiry || '',
+                preferredAirline: profile.preferredAirline || '',
+                dietaryPreferences: profile.dietaryPreferences || '',
+                specialAssistance: profile.specialAssistance || '',
+                billingAddress: profile.billingAddress || '',
             });
         }
-        setIsEditing(false);
-        setSaveStatus('idle');
     };
 
     if (isLoading) {

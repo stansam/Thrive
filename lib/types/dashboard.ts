@@ -20,6 +20,9 @@ export interface User {
     frequentFlyerNumbers?: Record<string, string>;
     dietaryPreferences?: string;
     specialAssistance?: string;
+    companyName?: string;
+    companyTaxId?: string;
+    billingAddress?: string;
     subscriptionTier: 'none' | 'bronze' | 'silver' | 'gold';
     referralCode: string;
     referralCredits: number;
@@ -40,6 +43,7 @@ export interface ProfileUpdateData {
     frequentFlyerNumbers?: Record<string, string>;
     dietaryPreferences?: string;
     specialAssistance?: string;
+    billingAddress?: string;
 }
 
 // ============================================================================
@@ -288,6 +292,22 @@ export interface Notification {
 export interface NotificationsResponse {
     notifications: Notification[];
     pagination: PaginationInfo;
+}
+
+export interface UserSettings {
+    emailNotifications: boolean;
+    marketingEmails: boolean;
+    smsNotifications: boolean;
+    profileVisibility: boolean;
+    dataSharing: boolean;
+}
+
+export interface SettingsUpdateData {
+    emailNotifications?: boolean;
+    marketingEmails?: boolean;
+    smsNotifications?: boolean;
+    profileVisibility?: boolean;
+    dataSharing?: boolean;
 }
 
 // ============================================================================

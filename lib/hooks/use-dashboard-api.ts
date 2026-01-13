@@ -22,6 +22,8 @@ import type {
     PaymentFilters,
     ExtendedPayment,
     PaymentsResponse,
+    UserSettings,
+    SettingsUpdateData,
 } from '../types/dashboard';
 
 // ============================================================================
@@ -299,6 +301,42 @@ export function useContactForm() {
     };
 
     return { submitContact };
+}
+
+// ============================================================================
+// Settings Hook
+// ============================================================================
+
+export function useSettings() {
+    const { data, error, isLoading, mutate: refresh } = useSWR(
+        'user-settings',
+        () => dashboardAPI.getSettings(),
+        {
+            revalidateOnFocus: false,
+        }
+    );
+
+    const updateSettings = async (settingsData: SettingsUpdateData) => {
+        try {
+            const response = await dashboardAPI.updateSettings(settingsData);
+
+            // Optimistically update
+            await refresh();
+
+            return response;
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    return {
+        settings: data?.data?.settings as UserSettings | undefined,
+        isLoading,
+        isError: !!error,
+        error,
+        updateSettings,
+        refresh
+    };
 }
 
 // ============================================================================

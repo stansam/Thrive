@@ -4,7 +4,12 @@
  */
 
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
-import type { APIResponse, APIError } from './types/dashboard';
+import type {
+    APIResponse, ProfileUpdateData,
+    ContactFormData,
+    SettingsUpdateData,
+    APIError,
+} from './types/dashboard';
 import { tokenManager } from './auth/token-manager';
 
 // Create axios instance with default config
@@ -186,8 +191,17 @@ export const dashboardAPI = {
     },
 
     // Contact
-    submitContact: (data: any) => {
+    submitContact: (data: ContactFormData) => {
         return apiClient.post<any, APIResponse>('/client/dashboard/contact', data);
+    },
+
+    // Settings
+    getSettings: () => {
+        return apiClient.get<any, APIResponse>('/client/dashboard/settings');
+    },
+
+    updateSettings: (data: SettingsUpdateData) => {
+        return apiClient.put<any, APIResponse>('/client/dashboard/settings', data);
     },
 
     // Notifications
