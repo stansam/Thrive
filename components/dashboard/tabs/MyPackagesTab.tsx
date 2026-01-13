@@ -12,9 +12,12 @@ import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import PackageDetailsView from '../views/PackageDetailsView';
 
-export default function MyPackagesTab() {
+import { useRouter } from 'next/navigation';
+
+export default function MyPackagesTab({ changeTab }: { changeTab?: (tab: any) => void }) {
     const { booked, saved, isLoading } = useMyPackages();
     const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
+
 
     if (selectedBookingId) {
         return <PackageDetailsView bookingId={selectedBookingId} onBack={() => setSelectedBookingId(null)} />;
@@ -72,7 +75,7 @@ export default function MyPackagesTab() {
                             </div>
                             <h3 className="text-lg font-medium">No booked packages</h3>
                             <p className="text-muted-foreground mb-4">You haven't booked any packages yet.</p>
-                            <Button>Explore Packages</Button>
+                            <Button onClick={() => changeTab?.('explore-packages')}>Explore Packages</Button>
                         </Card>
                     )}
                 </TabsContent>

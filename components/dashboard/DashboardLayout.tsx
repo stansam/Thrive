@@ -119,7 +119,12 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                 {renderNavLink({ id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard }, isMobile)}
 
                 {/* My Trips Accordion */}
-                <Accordion type="single" collapsible className="w-full border-none">
+                <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full border-none"
+                    value={(activeTab === 'flights' || activeTab === 'my-packages' || activeTab === 'explore-packages') ? 'my-trips' : ''}
+                >
                     <AccordionItem value="my-trips" className="border-none">
                         <AccordionTrigger
                             className={cn(
@@ -131,7 +136,7 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                 <MapPin className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> My Trips
                             </span>
                         </AccordionTrigger>
-                        <AccordionContent className="pb-0 pl-7">
+                        <AccordionContent className="pb-0 pl-1">
                             <div className="flex flex-col gap-1 mt-1 border-l-2 border-neutral-100 dark:border-neutral-800 pl-2">
                                 <button
                                     onClick={() => {
@@ -148,7 +153,12 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                 </button>
 
                                 {/* Packages Nested Accordion */}
-                                <Accordion type="single" collapsible className="w-full border-none">
+                                <Accordion
+                                    type="single"
+                                    collapsible
+                                    className="w-full border-none"
+                                    value={(activeTab === 'my-packages' || activeTab === 'explore-packages') ? 'packages' : ''}
+                                >
                                     <AccordionItem value="packages" className="border-none">
                                         <AccordionTrigger
                                             className={cn(
@@ -160,7 +170,7 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                                 <PackageIcon className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> Packages
                                             </span>
                                         </AccordionTrigger>
-                                        <AccordionContent className="pb-0 pl-6">
+                                        <AccordionContent className="pb-0 pl-2">
                                             <div className="flex flex-col gap-1 mt-1 border-l-2 border-neutral-100 dark:border-neutral-800 pl-2">
                                                 <button
                                                     onClick={() => {
@@ -168,9 +178,9 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                                         if (isMobile) setMobileMenuOpen(false);
                                                     }}
                                                     className={cn(
-                                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                                        "flex items-center gap-3 rounded-lg px-1 py-1 transition-all w-full text-left",
                                                         activeTab === 'my-packages' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
-                                                        isMobile ? 'text-lg' : 'text-sm font-medium'
+                                                        isMobile ? 'text-sm' : 'text-sm font-medium'
                                                     )}
                                                 >
                                                     <PackageIcon className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> My Packages
@@ -181,9 +191,9 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                                         if (isMobile) setMobileMenuOpen(false);
                                                     }}
                                                     className={cn(
-                                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                                        "flex items-center gap-3 rounded-lg px-1 py-1 transition-all w-full text-left",
                                                         activeTab === 'explore-packages' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
-                                                        isMobile ? 'text-lg' : 'text-sm font-medium'
+                                                        isMobile ? 'text-sm' : 'text-sm font-medium'
                                                     )}
                                                 >
                                                     <Compass className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> Explore Packages

@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Package as PackageIcon, Search, MapPin, DollarSign, Calendar } from 'lucide-react';
 
+import Link from 'next/link';
+
 export default function ExplorePackagesTab() {
     const [search, setSearch] = useState('');
     const { featured, packages, isLoading } = useExplorePackages({ search });
@@ -35,7 +37,9 @@ export default function ExplorePackagesTab() {
                         <Badge className="w-fit mb-2 bg-primary text-primary-foreground">Featured Destination</Badge>
                         <h3 className="text-3xl font-bold text-white mb-2">{featured[0].title}</h3>
                         <p className="text-white/80 max-w-xl mb-4">{featured[0].duration}</p>
-                        <Button size="lg" className="w-fit">View Package</Button>
+                        <Link href={`/trip/${featured[0].slug}`}>
+                            <Button size="lg" className="w-fit">View Package</Button>
+                        </Link>
                     </div>
                 </div>
             )}
@@ -84,11 +88,14 @@ export default function ExplorePackagesTab() {
                                         <span className="text-xs text-muted-foreground">Starting from</span>
                                         <span className="text-xl font-bold">${pkg.price}</span>
                                     </div>
-                                    <Button variant="outline" size="sm">Details</Button>
+                                    <Link href={`/trip/${pkg.slug}`}>
+                                        <Button variant="outline" size="sm">Details</Button>
+                                    </Link>
                                 </div>
                             </CardContent>
                         </Card>
                     ))
+
                 ) : (
                     <div className="col-span-full text-center py-12">
                         <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
