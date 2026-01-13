@@ -19,6 +19,9 @@ import type {
     ProfileUpdateData,
     ContactFormData,
     SubscriptionUpgradeData,
+    PaymentFilters,
+    ExtendedPayment,
+    PaymentsResponse,
 } from '../types/dashboard';
 
 // ============================================================================
@@ -77,6 +80,32 @@ export function useProfile() {
         isError: !!error,
         error,
         updateProfile,
+        refresh,
+    };
+}
+
+// ============================================================================
+// Payments Hooks
+// ============================================================================
+
+export function usePayments(filters: PaymentFilters = {}) {
+    const key = ['payments', JSON.stringify(filters)];
+
+    const { data, error, isLoading, mutate: refresh } = useSWR(
+        key,
+        () => dashboardAPI.getPayments(filters),
+        {
+            revalidateOnFocus: false,
+            keepPreviousData: true,
+        }
+    );
+
+    return {
+        payments: data?.data?.payments as ExtendedPayment[] | undefined,
+        pagination: data?.data?.pagination,
+        isLoading,
+        isError: !!error,
+        error,
         refresh,
     };
 }

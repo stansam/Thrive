@@ -47,7 +47,7 @@ import type { Notification } from '@/lib/types/dashboard';
 import { cn } from '@/lib/utils';
 
 // Tab configuration
-export type DashboardTab = 'dashboard' | 'flights' | 'my-packages' | 'explore-packages' | 'contact' | 'profile' | 'subscriptions' | 'settings';
+export type DashboardTab = 'dashboard' | 'flights' | 'my-packages' | 'explore-packages' | 'contact' | 'profile' | 'subscriptions' | 'payments' | 'settings';
 
 interface TabConfig {
     id: DashboardTab;
@@ -60,7 +60,7 @@ const tabs: TabConfig[] = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'main' },
     { id: 'contact', label: 'Contact Us', icon: MessageSquare, section: 'main' },
     { id: 'profile', label: 'Profile', icon: Users, section: 'sidebar' },
-    { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard, section: 'sidebar' },
+    // { id: 'subscriptions', label: 'Subscriptions', icon: CreditCard, section: 'sidebar' }, // Moved to Billing Accordion
     { id: 'settings', label: 'Settings', icon: Settings, section: 'sidebar' },
 ];
 
@@ -89,6 +89,8 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
         } else if (activeTab === 'my-packages' || activeTab === 'explore-packages') {
             setMainAccordionValue('my-trips');
             setSubAccordionValue('packages');
+        } else if (activeTab === 'subscriptions' || activeTab === 'payments') {
+            setMainAccordionValue('billing');
         }
     }, [activeTab]);
 
@@ -118,7 +120,7 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                 className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
                     isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
-                    isMobile ? 'text-lg' : 'text-sm font-medium'
+                    isMobile ? 'text-sm' : 'text-sm font-medium'
                 )}
             >
                 <Icon className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} />
@@ -147,7 +149,7 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                 (activeTab === 'flights' || activeTab === 'my-packages' || activeTab === 'explore-packages') ? 'text-primary font-semibold' : ''
                             )}
                         >
-                            <span className={cn("flex items-center gap-3", isMobile ? 'text-lg' : 'text-sm font-medium')}>
+                            <span className={cn("flex items-center gap-3", isMobile ? 'text-sm' : 'text-sm font-medium')}>
                                 <MapPin className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> My Trips
                             </span>
                         </AccordionTrigger>
@@ -161,10 +163,10 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                     className={cn(
                                         "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
                                         activeTab === 'flights' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
-                                        isMobile ? 'text-lg' : 'text-sm font-medium'
+                                        isMobile ? 'text-sm' : 'text-sm font-medium'
                                     )}
                                 >
-                                    <Plane className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> Flights
+                                    <Plane className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> My Flights
                                 </button>
 
                                 {/* Packages Nested Accordion */}
@@ -182,7 +184,7 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                                                 (activeTab === 'my-packages' || activeTab === 'explore-packages') ? 'text-primary font-semibold' : ''
                                             )}
                                         >
-                                            <span className={cn("flex items-center gap-3", isMobile ? 'text-lg' : 'text-sm font-medium')}>
+                                            <span className={cn("flex items-center gap-3", isMobile ? 'text-sm' : 'text-sm font-medium')}>
                                                 <PackageIcon className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> Packages
                                             </span>
                                         </AccordionTrigger>
@@ -231,6 +233,58 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                     ACCOUNT
                 </div>
                 <nav className="grid items-start gap-1">
+                    {/* Billing Accordion */}
+                    <Accordion
+                        type="single"
+                        collapsible
+                        className="w-full border-none"
+                        value={mainAccordionValue === 'billing' ? 'billing' : ''}
+                        onValueChange={(val) => setMainAccordionValue(val)}
+                    >
+                        <AccordionItem value="billing" className="border-none">
+                            <AccordionTrigger
+                                className={cn(
+                                    "py-2 px-3 text-muted-foreground hover:text-primary hover:bg-muted hover:no-underline rounded-lg",
+                                    (activeTab === 'subscriptions' || activeTab === 'payments') ? 'text-primary font-semibold' : ''
+                                )}
+                            >
+                                <span className={cn("flex items-center gap-3", isMobile ? 'text-sm' : 'text-sm font-medium')}>
+                                    <CreditCard className={isMobile ? 'h-5 w-5' : 'h-4 w-4'} /> Billing
+                                </span>
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-0 pl-1">
+                                <div className="flex flex-col gap-1 mt-1 border-l-2 border-neutral-100 dark:border-neutral-800 pl-2">
+                                    <button
+                                        onClick={() => {
+                                            onTabChange('subscriptions');
+                                            if (isMobile) setMobileMenuOpen(false);
+                                        }}
+                                        className={cn(
+                                            "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                            activeTab === 'subscriptions' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
+                                            isMobile ? 'text-sm' : 'text-sm font-medium'
+                                        )}
+                                    >
+                                        Subscriptions
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            onTabChange('payments');
+                                            if (isMobile) setMobileMenuOpen(false);
+                                        }}
+                                        className={cn(
+                                            "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                            activeTab === 'payments' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-primary hover:bg-muted',
+                                            isMobile ? 'text-sm' : 'text-sm font-medium'
+                                        )}
+                                    >
+                                        Payments & History
+                                    </button>
+                                </div>
+                            </AccordionContent>
+                        </AccordionItem>
+                    </Accordion>
+
                     {sidebarTabs.map(tab => renderNavLink(tab, isMobile))}
                 </nav>
             </div>
@@ -385,6 +439,10 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                             <DropdownMenuItem onClick={() => onTabChange('subscriptions')}>
                                 <CreditCard className="mr-2 h-4 w-4" />
                                 <span>Subscriptions</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onTabChange('payments')}>
+                                <CreditCard className="mr-2 h-4 w-4" />
+                                <span>Payments & History</span>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => onTabChange('settings')}>
                                 <Settings className="mr-2 h-4 w-4" />

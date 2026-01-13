@@ -143,6 +143,11 @@ export const dashboardAPI = {
         return apiClient.put<any, APIResponse>('/client/dashboard/profile', data);
     },
 
+    // Payments
+    getPayments: (params?: any) => {
+        return apiClient.get<any, APIResponse>('/client/dashboard/payments', { params });
+    },
+
     // Subscriptions
     getSubscriptions: () => {
         return apiClient.get<any, APIResponse>('/client/dashboard/subscriptions');

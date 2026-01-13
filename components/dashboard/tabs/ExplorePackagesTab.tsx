@@ -35,8 +35,8 @@ export default function ExplorePackagesTab() {
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent p-8 flex flex-col justify-end">
                         <Badge className="w-fit mb-2 bg-primary text-primary-foreground">Featured Destination</Badge>
-                        <h3 className="text-3xl font-bold text-white mb-2">{featured[0].title}</h3>
-                        <p className="text-white/80 max-w-xl mb-4">{featured[0].duration}</p>
+                        <h3 className="text-3xl font-bold text-white mb-2">{featured[0].name}</h3>
+                        <p className="text-white/80 text-sm max-w-xl mb-4">{featured[0].duration_days} Days {featured[0].duration_nights} Nights</p>
                         <Link href={`/trip/${featured[0].slug}`}>
                             <Button size="lg" className="w-fit">View Package</Button>
                         </Link>
@@ -77,16 +77,16 @@ export default function ExplorePackagesTab() {
                             </div>
                             <CardContent className="p-5">
                                 <div className="flex justify-between items-start mb-2">
-                                    <h3 className="font-semibold text-lg line-clamp-1">{pkg.title}</h3>
+                                    <h3 className="font-semibold text-lg line-clamp-1">{pkg.name}</h3>
                                 </div>
                                 <div className="flex items-center text-sm text-muted-foreground mb-4 gap-4">
-                                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {pkg.destination}</span>
-                                    {pkg.duration && <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {pkg.duration}</span>}
+                                    <span className="flex items-center gap-1"><MapPin className="h-3 w-3" /> {pkg.destination_city}, {pkg.destination_country}</span>
+                                    {pkg.duration_days && <span className="flex text-xs items-center gap-1"><Calendar className="h-3 w-3" /> {pkg.duration_days} Days {pkg.duration_nights} Nights</span>}
                                 </div>
                                 <div className="flex items-center justify-between mt-4">
                                     <div className="flex flex-col">
                                         <span className="text-xs text-muted-foreground">Starting from</span>
-                                        <span className="text-xl font-bold">${pkg.price}</span>
+                                        <span className="text-xl font-bold">${pkg.starting_price}</span>
                                     </div>
                                     <Link href={`/trip/${pkg.slug}`}>
                                         <Button variant="outline" size="sm">Details</Button>

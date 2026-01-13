@@ -138,7 +138,7 @@ export default function FlightsTab() {
                                             </div>
                                         </div>
                                         <Badge className={`capitalize ${flight.status === 'confirmed' ? 'bg-green-500' :
-                                                flight.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
+                                            flight.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
                                             }`}>
                                             {flight.status}
                                         </Badge>
@@ -155,18 +155,18 @@ export default function FlightsTab() {
                                         <div>
                                             <p className="text-muted-foreground">Arrival</p>
                                             <p className="font-medium">
-                                                {new Date(flight.arrival_date).toLocaleDateString()}
+                                                {new Date(flight.return_date).toLocaleDateString()}
                                                 <br />
-                                                {new Date(flight.arrival_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                {new Date(flight.return_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
                                         <div>
                                             <p className="text-muted-foreground">Reference</p>
-                                            <p className="font-medium text-mono">{flight.pnr}</p>
+                                            <p className="font-medium text-mono">{flight.booking_reference}</p>
                                         </div>
                                         <div>
                                             <p className="text-muted-foreground">Price</p>
-                                            <p className="font-medium">{flight.currency} {flight.price}</p>
+                                            <p className="font-medium">$ {flight.total_price}</p>
                                         </div>
                                     </div>
                                 </div>

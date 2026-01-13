@@ -62,15 +62,15 @@ function RecentBookingItem({ booking }: { booking: RecentBooking }) {
                     <Plane className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                    <p className="font-medium">{booking.bookingReference}</p>
+                    <p className="font-medium">{booking.booking_reference}</p>
                     <p className="text-sm text-muted-foreground">
-                        {booking.destination} • {booking.departureDate ? format(new Date(booking.departureDate), 'MMM dd, yyyy') : 'N/A'}
+                        {booking.destination} • {booking.departure_date ? format(new Date(booking.departure_date), 'MMM dd, yyyy') : 'N/A'}
                     </p>
                 </div>
             </div>
             <div className="flex items-center gap-4">
                 <div className="text-right">
-                    <p className="font-medium">${booking.totalPrice?.toFixed(2) || '0.00'}</p>
+                    <p className="font-medium">${booking.total_price?.toFixed(2) || '0.00'}</p>
                     <Badge variant="outline" className="mt-1">
                         <div className={`h-2 w-2 rounded-full ${statusColors[booking.status] || 'bg-gray-500'} mr-1`} />
                         {booking.status}

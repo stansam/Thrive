@@ -16,6 +16,7 @@ import ExplorePackagesTab from '@/components/dashboard/tabs/ExplorePackagesTab';
 import ContactTab from '@/components/dashboard/tabs/ContactTab';
 import ProfileSection from '@/components/dashboard/sections/ProfileSection';
 import SubscriptionsSection from '@/components/dashboard/sections/SubscriptionsSection';
+import PaymentsSection from '@/components/dashboard/sections/PaymentsSection';
 import SettingsSection from '@/components/dashboard/sections/SettingsSection';
 import { useAuth } from '@/lib/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -60,6 +61,8 @@ export default function DashboardPage() {
                 return <ProfileSection />;
             case 'subscriptions':
                 return <SubscriptionsSection />;
+            case 'payments':
+                return <PaymentsSection />;
             case 'settings':
                 return <SettingsSection />;
             default:

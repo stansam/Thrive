@@ -62,12 +62,12 @@ export interface ChartDataPoint {
 
 export interface RecentBooking {
     id: string;
-    bookingReference: string;
-    bookingType: string;
+    booking_reference: string;
+    booking_type: string;
     status: string;
     destination: string;
-    departureDate: string;
-    totalPrice: number;
+    departure_date: string;
+    total_price: number;
 }
 
 export interface DashboardSummary {
@@ -99,10 +99,15 @@ export interface Passenger {
 
 export interface Payment {
     id: string;
+    payment_reference: string;
     amount: number;
     currency: string;
     status: string;
     paymentMethod: string;
+    cardLast4?: string;
+    cardBrand?: string;
+    payment_metadata?: any;
+    failure_reason?: string;
     paidAt?: string;
     createdAt: string;
 }
@@ -143,6 +148,25 @@ export interface BookingFilters {
     endDate?: string;
     page?: number;
     perPage?: number;
+}
+
+export interface PaymentFilters {
+    status?: string;
+    fromDate?: string;
+    toDate?: string;
+    page?: number;
+    perPage?: number;
+}
+
+export interface ExtendedPayment extends Payment {
+    description?: string;
+    booking_reference?: string;
+    booking_type?: string;
+}
+
+export interface PaymentsResponse {
+    payments: ExtendedPayment[];
+    pagination: PaginationInfo;
 }
 
 export interface PaginationInfo {
