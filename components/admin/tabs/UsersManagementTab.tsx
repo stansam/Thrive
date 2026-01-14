@@ -52,7 +52,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default function UsersManagementTab() {
     const [page, setPage] = useState(1);
@@ -207,6 +207,7 @@ export default function UsersManagementTab() {
                                         <TableCell>
                                             <div className="flex items-center gap-3">
                                                 <Avatar className="h-9 w-9">
+                                                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.first_name} ${user.last_name}`} alt={`${user.first_name} ${user.last_name}`} />
                                                     <AvatarFallback className="bg-primary/10 text-primary">
                                                         {user.first_name?.[0]}{user.last_name?.[0]}
                                                     </AvatarFallback>

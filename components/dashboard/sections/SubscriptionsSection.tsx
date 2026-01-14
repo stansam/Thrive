@@ -306,34 +306,45 @@ export default function SubscriptionsSection() {
                                     </CardContent>
 
                                     <CardFooter className="pt-4">
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <div className="w-full">
-                                                    <Button
-                                                        className="w-full"
-                                                        variant={plan.popular ? 'default' : 'outline'}
-                                                        disabled={isCurrentPlan || isUpgrading}
-                                                        onClick={() => canUpgrade ? handleUpgrade(plan) : null}
-                                                    >
-                                                        {isUpgrading && selectedPlan?.tier === plan.tier ? (
-                                                            <>
-                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                                Processing...
-                                                            </>
-                                                        ) : isCurrentPlan ? (
-                                                            'Current Plan'
-                                                        ) : (
-                                                            canUpgrade ? `Upgrade to ${plan.name}` : 'Contact Support to Downgrade'
-                                                        )}
-                                                    </Button>
-                                                </div>
-                                            </TooltipTrigger>
-                                            {!canUpgrade && !isCurrentPlan && (
+                                        {(!canUpgrade && !isCurrentPlan) ? (
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <div className="w-full">
+                                                        <Button
+                                                            className="w-full"
+                                                            variant={plan.popular ? 'default' : 'outline'}
+                                                            disabled={true}
+                                                            onClick={undefined}
+                                                        >
+                                                            Contact Support to Downgrade
+                                                        </Button>
+                                                    </div>
+                                                </TooltipTrigger>
                                                 <TooltipContent>
                                                     <p>To downgrade your plan, please contact our support team.</p>
                                                 </TooltipContent>
-                                            )}
-                                        </Tooltip>
+                                            </Tooltip>
+                                        ) : (
+                                            <div className="w-full">
+                                                <Button
+                                                    className="w-full"
+                                                    variant={plan.popular ? 'default' : 'outline'}
+                                                    disabled={isCurrentPlan || isUpgrading}
+                                                    onClick={() => canUpgrade ? handleUpgrade(plan) : null}
+                                                >
+                                                    {isUpgrading && selectedPlan?.tier === plan.tier ? (
+                                                        <>
+                                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                            Processing...
+                                                        </>
+                                                    ) : isCurrentPlan ? (
+                                                        'Current Plan'
+                                                    ) : (
+                                                        `Upgrade to ${plan.name}`
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        )}
                                     </CardFooter>
                                 </Card>
                             );

@@ -396,7 +396,7 @@ export default function AdminDashboardLayout() {
                                     <DropdownMenuTrigger asChild>
                                         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                                             <Avatar className="h-10 w-10 border">
-                                                <AvatarImage src="" />
+                                                <AvatarImage src={user?.email ? `https://api.dicebear.com/7.x/initials/svg?seed=${user.email}` : undefined} />
                                                 <AvatarFallback className="bg-indigo-600 text-white">{userInitials}</AvatarFallback>
                                             </Avatar>
                                         </Button>
