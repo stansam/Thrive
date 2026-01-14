@@ -46,6 +46,14 @@ export interface AdminBooking {
         fullName: string;
         email: string;
     };
+    // Detailed fields depending on booking type
+    package?: {
+        id: string;
+        name: string;
+        duration: string;
+    };
+    passengers?: any[];
+    payments?: AdminPayment[];
 }
 
 export interface AdminQuote {

@@ -17,7 +17,11 @@ import {
     Bell,
     Settings,
     Briefcase,
-    ShoppingCart
+    ShoppingCart,
+    Plane,
+    PackageOpen,
+    ChevronDown,
+    ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +55,9 @@ import { cn } from "@/lib/utils";
 // Admin Tabs Components
 import AdminDashboardTab from "@/components/admin/tabs/AdminDashboardTab";
 import UsersManagementTab from "@/components/admin/tabs/UsersManagementTab";
-import BookingsManagementTab from "@/components/admin/tabs/BookingsManagementTab";
+import BookingsManagementTab from "@/components/admin/tabs/BookingsManagementTab"; // Deprecated but keeping for reference if needed, or remove? I will remove from switch.
+import FlightsManagementTab from "@/components/admin/tabs/FlightsManagementTab";
+import PackageBookingsTab from "@/components/admin/tabs/PackageBookingsTab";
 import QuotesManagementTab from "@/components/admin/tabs/QuotesManagementTab";
 import PackagesManagementTab from "@/components/admin/tabs/PackagesManagementTab";
 import PaymentsManagementTab from "@/components/admin/tabs/PaymentsManagementTab";
@@ -65,11 +71,16 @@ export default function AdminDashboardLayout() {
 
     // Accordion State
     const [accordionValue, setAccordionValue] = useState<string>("");
+    // Sub-accordion state for Bookings
+    const [bookingsOpen, setBookingsOpen] = useState(false);
 
     // Sync accordion state on tab change
     useEffect(() => {
-        if (["users", "bookings"].includes(activeTab)) {
+        if (["users", "bookings-flights", "bookings-packages"].includes(activeTab)) {
             setAccordionValue("operations");
+            if (activeTab.startsWith("bookings-")) {
+                setBookingsOpen(true);
+            }
         } else if (["packages", "quotes", "payments"].includes(activeTab)) {
             setAccordionValue("commerce");
         }
@@ -89,7 +100,9 @@ export default function AdminDashboardLayout() {
         switch (activeTab) {
             case "dashboard": return <AdminDashboardTab />;
             case "users": return <UsersManagementTab />;
-            case "bookings": return <BookingsManagementTab />;
+            // Bookings split
+            case "bookings-flights": return <FlightsManagementTab />;
+            case "bookings-packages": return <PackageBookingsTab />;
             case "quotes": return <QuotesManagementTab />;
             case "packages": return <PackagesManagementTab />;
             case "payments": return <PaymentsManagementTab />;
@@ -102,7 +115,8 @@ export default function AdminDashboardLayout() {
         const titles: Record<string, string> = {
             dashboard: "Dashboard Overview",
             users: "User Management",
-            bookings: "Booking Management",
+            "bookings-flights": "Flight Bookings",
+            "bookings-packages": "Package Bookings",
             quotes: "Quote Requests",
             packages: "Travel Packages",
             payments: "Payments & Financials",
@@ -111,7 +125,7 @@ export default function AdminDashboardLayout() {
         return titles[activeTab] || "Admin Dashboard";
     };
 
-    const NavigationContent = ({ isMobile = false }) => (
+    const NavigationContent = ({ isMobile = false }: { isMobile?: boolean }) => (
         <div className="flex-1 overflow-auto py-4">
             <nav className="flex flex-col px-4 text-sm font-medium gap-1">
                 {/* Dashboard */}
@@ -142,7 +156,7 @@ export default function AdminDashboardLayout() {
                         <AccordionTrigger
                             className={cn(
                                 "py-2 px-3 text-muted-foreground hover:text-primary hover:bg-muted hover:no-underline rounded-lg",
-                                (["users", "bookings"].includes(activeTab)) ? "text-primary font-semibold" : ""
+                                (["users", "bookings-flights", "bookings-packages"].includes(activeTab)) ? "text-primary font-semibold" : ""
                             )}
                         >
                             <span className={cn("flex items-center gap-3", isMobile ? "text-sm" : "text-sm font-medium")}>
@@ -164,19 +178,54 @@ export default function AdminDashboardLayout() {
                                 >
                                     <Users className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Users
                                 </button>
-                                <button
-                                    onClick={() => {
-                                        setActiveTab("bookings");
-                                        if (isMobile) setMobileMenuOpen(false);
-                                    }}
-                                    className={cn(
-                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
-                                        activeTab === "bookings" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
-                                        isMobile ? "text-sm" : "text-sm font-medium"
+
+                                {/* Bookings Toggle Group */}
+                                <div className="space-y-1">
+                                    <button
+                                        onClick={() => setBookingsOpen(!bookingsOpen)}
+                                        className={cn(
+                                            "flex items-center justify-between gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                            (activeTab.includes("bookings")) ? "text-primary font-medium" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                                            isMobile ? "text-sm" : "text-sm font-medium"
+                                        )}
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <Calendar className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Bookings
+                                        </div>
+                                        {bookingsOpen ? <ChevronDown className={isMobile ? "h-4 w-4" : "h-3 w-3"} /> : <ChevronRight className={isMobile ? "h-4 w-4" : "h-3 w-3"} />}
+                                    </button>
+
+                                    {bookingsOpen && (
+                                        <div className="ml-4 pl-2 border-l border-neutral-200 dark:border-neutral-800 space-y-1">
+                                            <button
+                                                onClick={() => {
+                                                    setActiveTab("bookings-flights");
+                                                    if (isMobile) setMobileMenuOpen(false);
+                                                }}
+                                                className={cn(
+                                                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                                    activeTab === "bookings-flights" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                                                    isMobile ? "text-sm" : "text-sm font-medium"
+                                                )}
+                                            >
+                                                <Plane className={isMobile ? "h-4 w-4" : "h-3 w-3"} /> Flights
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setActiveTab("bookings-packages");
+                                                    if (isMobile) setMobileMenuOpen(false);
+                                                }}
+                                                className={cn(
+                                                    "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                                    activeTab === "bookings-packages" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                                                    isMobile ? "text-sm" : "text-sm font-medium"
+                                                )}
+                                            >
+                                                <PackageOpen className={isMobile ? "h-4 w-4" : "h-3 w-3"} /> Packages
+                                            </button>
+                                        </div>
                                     )}
-                                >
-                                    <Calendar className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Bookings
-                                </button>
+                                </div>
                             </div>
                         </AccordionContent>
                     </AccordionItem>
@@ -265,8 +314,6 @@ export default function AdminDashboardLayout() {
             </nav>
         </div>
     );
-
-
 
     return (
         <div className="flex h-screen w-full flex-col bg-muted/20 md:flex-row overflow-hidden">
