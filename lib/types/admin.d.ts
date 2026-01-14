@@ -73,6 +73,7 @@ export interface AdminPackage {
     starting_price: number;
     is_active: boolean;
     featured_image?: string;
+    description?: string;
 }
 
 export interface AdminPayment {

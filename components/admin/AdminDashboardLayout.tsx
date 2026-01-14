@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
     LayoutDashboard,
     Users,
@@ -13,9 +14,41 @@ import {
     LogOut,
     Menu,
     X,
+    Bell,
+    Settings,
+    Briefcase,
+    ShoppingCart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import {
+    Sheet,
+    SheetContent,
+} from "@/components/ui/sheet";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion";
+import { useAuth } from "@/lib/auth-context";
+import { cn } from "@/lib/utils";
+
+// Admin Tabs Components
 import AdminDashboardTab from "@/components/admin/tabs/AdminDashboardTab";
 import UsersManagementTab from "@/components/admin/tabs/UsersManagementTab";
 import BookingsManagementTab from "@/components/admin/tabs/BookingsManagementTab";
@@ -23,161 +56,322 @@ import QuotesManagementTab from "@/components/admin/tabs/QuotesManagementTab";
 import PackagesManagementTab from "@/components/admin/tabs/PackagesManagementTab";
 import PaymentsManagementTab from "@/components/admin/tabs/PaymentsManagementTab";
 import ContactMessagesTab from "@/components/admin/tabs/ContactMessagesTab";
-import { useAuth } from "@/lib/auth-context";
-
-interface TabConfig {
-    id: string;
-    label: string;
-    icon: React.ReactNode;
-    component: React.ReactNode;
-}
 
 export default function AdminDashboardLayout() {
     const [activeTab, setActiveTab] = useState("dashboard");
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const router = useRouter();
     const { logout, user } = useAuth();
 
-    const tabs: TabConfig[] = [
-        {
-            id: "dashboard",
-            label: "Dashboard",
-            icon: <LayoutDashboard className="w-5 h-5" />,
-            component: <AdminDashboardTab />,
-        },
-        {
-            id: "users",
-            label: "Users",
-            icon: <Users className="w-5 h-5" />,
-            component: <UsersManagementTab />,
-        },
-        {
-            id: "bookings",
-            label: "Bookings",
-            icon: <Calendar className="w-5 h-5" />,
-            component: <BookingsManagementTab />,
-        },
-        {
-            id: "quotes",
-            label: "Quotes",
-            icon: <HelpCircle className="w-5 h-5" />,
-            component: <QuotesManagementTab />,
-        },
-        {
-            id: "packages",
-            label: "Packages",
-            icon: <Package className="w-5 h-5" />,
-            component: <PackagesManagementTab />,
-        },
-        {
-            id: "payments",
-            label: "Payments",
-            icon: <CreditCard className="w-5 h-5" />,
-            component: <PaymentsManagementTab />,
-        },
-        {
-            id: "contacts",
-            label: "Contact Messages",
-            icon: <Mail className="w-5 h-5" />,
-            component: <ContactMessagesTab />,
-        },
-    ];
+    // Accordion State
+    const [accordionValue, setAccordionValue] = useState<string>("");
+
+    // Sync accordion state on tab change
+    useEffect(() => {
+        if (["users", "bookings"].includes(activeTab)) {
+            setAccordionValue("operations");
+        } else if (["packages", "quotes", "payments"].includes(activeTab)) {
+            setAccordionValue("commerce");
+        }
+    }, [activeTab]);
 
     const handleLogout = () => {
         logout();
+        router.push("/sign-in");
     };
 
-    const currentTab = tabs.find((tab) => tab.id === activeTab);
+    const userInitials = user?.email
+        ? user.email.substring(0, 2).toUpperCase()
+        : "AD";
+
+    // Tab content mapping
+    const renderContent = () => {
+        switch (activeTab) {
+            case "dashboard": return <AdminDashboardTab />;
+            case "users": return <UsersManagementTab />;
+            case "bookings": return <BookingsManagementTab />;
+            case "quotes": return <QuotesManagementTab />;
+            case "packages": return <PackagesManagementTab />;
+            case "payments": return <PaymentsManagementTab />;
+            case "contacts": return <ContactMessagesTab />;
+            default: return <AdminDashboardTab />;
+        }
+    };
+
+    const getTabTitle = () => {
+        const titles: Record<string, string> = {
+            dashboard: "Dashboard Overview",
+            users: "User Management",
+            bookings: "Booking Management",
+            quotes: "Quote Requests",
+            packages: "Travel Packages",
+            payments: "Payments & Financials",
+            contacts: "Contact Messages"
+        };
+        return titles[activeTab] || "Admin Dashboard";
+    };
+
+    const NavigationContent = ({ isMobile = false }) => (
+        <div className="flex-1 overflow-auto py-4">
+            <nav className="flex flex-col px-4 text-sm font-medium gap-1">
+                {/* Dashboard */}
+                <button
+                    onClick={() => {
+                        setActiveTab("dashboard");
+                        if (isMobile) setMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                        activeTab === "dashboard" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                        isMobile ? "text-sm" : "text-sm font-medium"
+                    )}
+                >
+                    <LayoutDashboard className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
+                    Dashboard
+                </button>
+
+                {/* Operations Accordion */}
+                <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full border-none"
+                    value={accordionValue === "operations" ? "operations" : ""}
+                    onValueChange={(val) => setAccordionValue(val)}
+                >
+                    <AccordionItem value="operations" className="border-none">
+                        <AccordionTrigger
+                            className={cn(
+                                "py-2 px-3 text-muted-foreground hover:text-primary hover:bg-muted hover:no-underline rounded-lg",
+                                (["users", "bookings"].includes(activeTab)) ? "text-primary font-semibold" : ""
+                            )}
+                        >
+                            <span className={cn("flex items-center gap-3", isMobile ? "text-sm" : "text-sm font-medium")}>
+                                <Briefcase className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Operations
+                            </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-0 pl-1">
+                            <div className="flex flex-col gap-1 mt-1 border-l-2 border-neutral-100 dark:border-neutral-800 pl-2">
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("users");
+                                        if (isMobile) setMobileMenuOpen(false);
+                                    }}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                        activeTab === "users" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                                        isMobile ? "text-sm" : "text-sm font-medium"
+                                    )}
+                                >
+                                    <Users className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Users
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("bookings");
+                                        if (isMobile) setMobileMenuOpen(false);
+                                    }}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                        activeTab === "bookings" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                                        isMobile ? "text-sm" : "text-sm font-medium"
+                                    )}
+                                >
+                                    <Calendar className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Bookings
+                                </button>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+
+                {/* Commerce Accordion */}
+                <Accordion
+                    type="single"
+                    collapsible
+                    className="w-full border-none"
+                    value={accordionValue === "commerce" ? "commerce" : ""}
+                    onValueChange={(val) => setAccordionValue(val)}
+                >
+                    <AccordionItem value="commerce" className="border-none">
+                        <AccordionTrigger
+                            className={cn(
+                                "py-2 px-3 text-muted-foreground hover:text-primary hover:bg-muted hover:no-underline rounded-lg",
+                                (["packages", "quotes", "payments"].includes(activeTab)) ? "text-primary font-semibold" : ""
+                            )}
+                        >
+                            <span className={cn("flex items-center gap-3", isMobile ? "text-sm" : "text-sm font-medium")}>
+                                <ShoppingCart className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Commerce
+                            </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-0 pl-1">
+                            <div className="flex flex-col gap-1 mt-1 border-l-2 border-neutral-100 dark:border-neutral-800 pl-2">
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("packages");
+                                        if (isMobile) setMobileMenuOpen(false);
+                                    }}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                        activeTab === "packages" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                                        isMobile ? "text-sm" : "text-sm font-medium"
+                                    )}
+                                >
+                                    <Package className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Packages
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("quotes");
+                                        if (isMobile) setMobileMenuOpen(false);
+                                    }}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                        activeTab === "quotes" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                                        isMobile ? "text-sm" : "text-sm font-medium"
+                                    )}
+                                >
+                                    <HelpCircle className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Quotes
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setActiveTab("payments");
+                                        if (isMobile) setMobileMenuOpen(false);
+                                    }}
+                                    className={cn(
+                                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                                        activeTab === "payments" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                                        isMobile ? "text-sm" : "text-sm font-medium"
+                                    )}
+                                >
+                                    <CreditCard className={isMobile ? "h-5 w-5" : "h-4 w-4"} /> Payments
+                                </button>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+
+                {/* Support - Flat */}
+                <button
+                    onClick={() => {
+                        setActiveTab("contacts");
+                        if (isMobile) setMobileMenuOpen(false);
+                    }}
+                    className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 transition-all w-full text-left",
+                        activeTab === "contacts" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-primary hover:bg-muted",
+                        isMobile ? "text-sm" : "text-sm font-medium"
+                    )}
+                >
+                    <Mail className={isMobile ? "h-5 w-5" : "h-4 w-4"} />
+                    Messages
+                </button>
+            </nav>
+        </div>
+    );
+
+
 
     return (
-        <div className="flex h-screen bg-gray-50">
-            {/* Sidebar */}
-            <aside
-                className={`${sidebarOpen ? "w-64" : "w-20"
-                    } bg-gradient-to-b from-indigo-600 to-purple-700 text-white transition-all duration-300 ease-in-out flex flex-col`}
-            >
-                {/* Header */}
-                <div className="p-6 border-b border-indigo-500/50">
-                    <div className="flex items-center justify-between">
-                        {sidebarOpen && (
-                            <h1 className="text-2xl font-bold">Admin Panel</h1>
-                        )}
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="text-white hover:bg-white/10"
-                        >
-                            {sidebarOpen ? (
-                                <X className="w-5 h-5" />
-                            ) : (
-                                <Menu className="w-5 h-5" />
-                            )}
-                        </Button>
-                    </div>
+        <div className="flex h-screen w-full flex-col bg-muted/20 md:flex-row overflow-hidden">
+            {/* Desktop Sidebar */}
+            <aside className="hidden w-64 flex-col border-r bg-background md:flex h-full shrink-0">
+                <div className="flex h-14 items-center border-b px-6">
+                    <Link href="/" className="flex items-center gap-2 font-semibold">
+                        <LayoutDashboard className="h-6 w-6 text-indigo-600" />
+                        <span>Thrive Admin</span>
+                    </Link>
                 </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 ${activeTab === tab.id
-                                ? "bg-white text-indigo-600 shadow-lg"
-                                : "text-white/80 hover:bg-white/10 hover:text-white"
-                                }`}
-                        >
-                            {tab.icon}
-                            {sidebarOpen && (
-                                <span className="font-medium">{tab.label}</span>
-                            )}
-                        </button>
-                    ))}
-                </nav>
+                <NavigationContent />
 
-                {/* Logout Button */}
-                <div className="p-4 border-t border-indigo-500/50">
-                    <button
-                        onClick={handleLogout}
-                        className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-white/80 hover:bg-white/10 hover:text-white transition-all duration-200"
-                    >
-                        <LogOut className="w-5 h-5" />
-                        {sidebarOpen && <span className="font-medium">Logout</span>}
-                    </button>
+                <div className="mt-auto border-t p-4">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={handleLogout}
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all hover:text-destructive hover:bg-destructive/10"
+                            >
+                                <LogOut className="h-4 w-4" />
+                                <span>Log out</span>
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">Sign out of your account</TooltipContent>
+                    </Tooltip>
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 overflow-y-auto">
+            {/* Mobile Sidebar */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetContent side="left" className="w-64 p-0">
+                    <div className="flex h-14 items-center border-b px-6">
+                        <Link href="/" className="flex items-center gap-2 font-semibold">
+                            <LayoutDashboard className="h-6 w-6 text-indigo-600" />
+                            <span>Thrive Admin</span>
+                        </Link>
+                    </div>
+                    <NavigationContent isMobile={true} />
+                </SheetContent>
+            </Sheet>
+
+            {/* Main Content Area */}
+            <div className="flex flex-1 flex-col overflow-hidden">
                 {/* Header */}
-                <header className="bg-white shadow-sm border-b border-gray-200 px-8 py-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-3xl font-bold text-gray-900">
-                                {currentTab?.label}
-                            </h2>
-                            <p className="text-gray-500 mt-1">
-                                Manage and monitor your platform
-                            </p>
+                <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                size="icon"
+                                variant="outline"
+                                className="md:hidden"
+                                onClick={() => setMobileMenuOpen(true)}
+                            >
+                                <Menu className="h-5 w-5" />
+                                <span className="sr-only">Toggle Menu</span>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Open navigation menu</TooltipContent>
+                    </Tooltip>
+
+                    <div className="flex-1">
+                        <h1 className="text-lg font-semibold md:text-2xl">
+                            {getTabTitle()}
+                        </h1>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        {/* Admin Badge */}
+                        <div className="hidden md:flex flex-col items-end">
+                            <span className="text-sm font-medium">{user?.email}</span>
+                            <span className="text-xs text-muted-foreground uppercase">Administrator</span>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <div className="text-right">
-                                <p className="text-sm font-medium text-gray-900">
-                                    {user?.email || "Admin"}
-                                </p>
-                                <p className="text-xs text-gray-500">Administrator</p>
-                            </div>
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                                A
-                            </div>
-                        </div>
+
+                        {/* User Menu */}
+                        <DropdownMenu>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                                            <Avatar className="h-10 w-10 border">
+                                                <AvatarImage src="" />
+                                                <AvatarFallback className="bg-indigo-600 text-white">{userInitials}</AvatarFallback>
+                                            </Avatar>
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent>Account settings</TooltipContent>
+                            </Tooltip>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </header>
 
-                {/* Tab Content */}
-                <div className="p-8">{currentTab?.component}</div>
-            </main>
+                {/* Content */}
+                <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                    {renderContent()}
+                </main>
+            </div>
         </div>
     );
 }

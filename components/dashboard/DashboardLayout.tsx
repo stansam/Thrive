@@ -45,6 +45,11 @@ import { useAuth } from '@/lib/auth-context';
 import { useProfile, useNotifications } from '@/lib/hooks/use-dashboard-api';
 import type { Notification } from '@/lib/types/dashboard';
 import { cn } from '@/lib/utils';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Tab configuration
 export type DashboardTab = 'dashboard' | 'flights' | 'my-packages' | 'explore-packages' | 'contact' | 'profile' | 'subscriptions' | 'payments' | 'settings';
@@ -308,20 +313,31 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
 
                 {/* Bottom Actions */}
                 <div className="mt-auto border-t p-4">
-                    <button
-                        onClick={() => onTabChange('contact')}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all hover:text-primary hover:bg-muted"
-                    >
-                        <LifeBuoy className="h-4 w-4" />
-                        <span>Help & Support</span>
-                    </button>
-                    <button
-                        onClick={handleLogout}
-                        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all hover:text-destructive hover:bg-destructive/10"
-                    >
-                        <LogOut className="h-4 w-4" />
-                        <span>Log out</span>
-                    </button>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={() => onTabChange('contact')}
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all hover:text-primary hover:bg-muted"
+                            >
+                                <LifeBuoy className="h-4 w-4" />
+                                <span>Help & Support</span>
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">Get assistance</TooltipContent>
+                    </Tooltip>
+
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button
+                                onClick={handleLogout}
+                                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-all hover:text-destructive hover:bg-destructive/10"
+                            >
+                                <LogOut className="h-4 w-4" />
+                                <span>Log out</span>
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">Sign out of your account</TooltipContent>
+                    </Tooltip>
                 </div>
             </aside>
 
@@ -331,12 +347,17 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
                 <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
                     {/* Mobile Menu Toggle */}
                     <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                        <SheetTrigger asChild>
-                            <Button size="icon" variant="outline" className="md:hidden">
-                                <Menu className="h-5 w-5" />
-                                <span className="sr-only">Toggle Menu</span>
-                            </Button>
-                        </SheetTrigger>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <SheetTrigger asChild>
+                                    <Button size="icon" variant="outline" className="md:hidden">
+                                        <Menu className="h-5 w-5" />
+                                        <span className="sr-only">Toggle Menu</span>
+                                    </Button>
+                                </SheetTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>Open navigation menu</TooltipContent>
+                        </Tooltip>
                         <SheetContent side="left" className="w-64 p-0">
                             <div className="flex h-14 items-center border-b px-6">
                                 <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -376,20 +397,25 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
 
                     {/* Notifications */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="icon" className="relative">
-                                <Bell className="h-4 w-4" />
-                                {unreadCount > 0 && (
-                                    <Badge
-                                        variant="destructive"
-                                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-                                    >
-                                        {unreadCount > 9 ? '9+' : unreadCount}
-                                    </Badge>
-                                )}
-                                <span className="sr-only">Notifications</span>
-                            </Button>
-                        </DropdownMenuTrigger>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="icon" className="relative">
+                                        <Bell className="h-4 w-4" />
+                                        {unreadCount > 0 && (
+                                            <Badge
+                                                variant="destructive"
+                                                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                                            >
+                                                {unreadCount > 9 ? '9+' : unreadCount}
+                                            </Badge>
+                                        )}
+                                        <span className="sr-only">Notifications</span>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>View notifications</TooltipContent>
+                        </Tooltip>
                         <DropdownMenuContent align="end" className="w-80">
                             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                             <DropdownMenuSeparator />
@@ -412,14 +438,19 @@ export default function DashboardLayout({ children, activeTab, onTabChange }: Da
 
                     {/* User Menu */}
                     <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                                <Avatar className="h-10 w-10">
-                                    <AvatarImage src={profile?.email ? `https://api.dicebear.com/7.x/initials/svg?seed=${profile.firstName} ${profile.lastName}` : undefined} />
-                                    <AvatarFallback>{userInitials}</AvatarFallback>
-                                </Avatar>
-                            </Button>
-                        </DropdownMenuTrigger>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarImage src={profile?.email ? `https://api.dicebear.com/7.x/initials/svg?seed=${profile.firstName} ${profile.lastName}` : undefined} />
+                                            <AvatarFallback>{userInitials}</AvatarFallback>
+                                        </Avatar>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent>Account settings</TooltipContent>
+                        </Tooltip>
                         <DropdownMenuContent align="end" className="w-56">
                             <DropdownMenuLabel>
                                 <div className="flex flex-col space-y-1">

@@ -6,39 +6,25 @@
 
 import useSWR from 'swr';
 import { useState } from 'react';
-import apiClient from '../api-client';
+import adminClient from '../admin-api-client';
 
-// Fetcher function using apiClient
-// Url acts as the key AND the path
-// apiClient base url is set to backend root.
-// If keys are passed as absolute paths starting with http... apiClient (axios) handles it? 
-// Actually axios baseURL is prepended ONLY if url is relative.
-// Existing code had `${API_BASE}/admin/dashboard` as the key.
-// But we want to use apiClient.
-// If we pass a relative URL '/admin/dashboard', apiClient will prepend the base.
-// That is cleaner.
+// Fetcher function using adminClient
 async function fetcher(url: string) {
-    // apiClient returns the data directly.
-    // If the response shape is { success, data } we might need to unwrap.
-    // However, apiClient interceptor currently returns `response.data`.
-    // The previous fetcher did `data.data || data`.
-    // Let's assume apiClient returns the JSON body.
-    // If Flask returns { data: ... }, we return that.
-
-    // NOTE: apiClient response interceptor: `return response.data;`
-    // So the result IS the JSON object.
-    const result: any = await apiClient.get(url);
-    return result.data || result;
+    const result: any = await adminClient.get(url);
+    // Unwrapping the data property from the API response
+    // The APIResponse wrapper format is { success: boolean, data: any, message: string }
+    return result?.data || result;
 }
 
 // Generic mutation function
 async function mutateData(url: string, method: string, data?: any) {
-    const result: any = await apiClient.request({
+    const result: any = await adminClient.request({
         url,
         method,
         data
     });
-    return result.data || result;
+    // Unwrapping the data property from the API response
+    return result?.data || result;
 }
 
 // Helper to make SWR keys relative

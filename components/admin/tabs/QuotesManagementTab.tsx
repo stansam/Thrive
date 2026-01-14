@@ -1,21 +1,40 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuotes, useUpdateQuote } from "@/lib/hooks/use-admin-api";
-import { Eye, Edit, ChevronLeft, ChevronRight } from "lucide-react";
+import { Eye, Edit, ChevronLeft, ChevronRight, MoreHorizontal, Calendar } from "lucide-react";
 import type { AdminQuote } from "@/lib/types/admin.d.ts";
+import { DatePickerWithRange } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
 import {
     Dialog,
     DialogContent,
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogFooter,
 } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
     Select,
     SelectContent,
@@ -25,17 +44,23 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 export default function QuotesManagementTab() {
     const [page, setPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState("all");
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
     const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
     const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [editForm, setEditForm] = useState<any>({});
+    const { toast } = useToast();
 
     const { quotes, pagination, isLoading, refresh } = useQuotes({
         page,
         status: statusFilter === "all" ? "" : statusFilter,
+        startDate: dateRange?.from?.toISOString(),
+        endDate: dateRange?.to?.toISOString(),
     });
 
     const [selectedQuote, setSelectedQuote] = useState<AdminQuote | null>(null);
@@ -61,9 +86,17 @@ export default function QuotesManagementTab() {
             setEditingQuoteId(null);
             setEditForm({});
             refresh();
-            alert("Quote updated successfully!");
+            toast({
+                title: "Quote Updated",
+                description: "The quote details have been successfully updated.",
+            });
         } catch (error: any) {
-            alert(error?.message || "Failed to update quote");
+            console.error("Failed to update quote", error);
+            toast({
+                variant: "destructive",
+                title: "Update Failed",
+                description: "Could not update the quote. Please try again.",
+            });
         }
     };
 
@@ -83,12 +116,13 @@ export default function QuotesManagementTab() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Filters */}
-            <Card className="p-6">
-                <div className="flex gap-4">
+            <div className="flex justify-end">
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                    <DatePickerWithRange date={dateRange} setDate={setDateRange} />
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-[200px]">
+                        <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="All Status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -101,136 +135,136 @@ export default function QuotesManagementTab() {
                         </SelectContent>
                     </Select>
                 </div>
-            </Card>
+            </div >
 
-            {/* Quotes Table */}
-            <Card className="overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Reference
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Customer
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Route
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Trip Type
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Status
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Price
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
+            {/* Quotes Table Card */}
+            <Card>
+                <CardHeader className="px-6 py-4 border-b">
+                    <CardTitle>Quotes</CardTitle>
+                    <CardDescription>
+                        Review and manage customer quote requests.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[150px]">Reference</TableHead>
+                                <TableHead className="w-[200px]">Customer</TableHead>
+                                <TableHead>Route</TableHead>
+                                <TableHead>Trip Type</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Price</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {isLoading ? (
                                 Array(5).fill(0).map((_, i) => (
-                                    <tr key={i}>
-                                        <td colSpan={7} className="px-6 py-4">
-                                            <Skeleton className="h-12 w-full" />
-                                        </td>
-                                    </tr>
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-24 mt-1" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                                        <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
                                 ))
                             ) : quotes?.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                                        No quotes found
-                                    </td>
-                                </tr>
+                                <TableRow>
+                                    <TableCell colSpan={7} className="h-24 text-center">
+                                        No quotes found.
+                                    </TableCell>
+                                </TableRow>
                             ) : (
                                 quotes?.map((quote: AdminQuote) => (
-                                    <tr key={quote.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 font-medium text-gray-900">
+                                    <TableRow key={quote.id}>
+                                        <TableCell className="font-medium">
                                             {quote.quote_reference}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {quote.user?.fullName || "N/A"}
-                                                </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {quote.user?.email}
-                                                </div>
+                                            <div className="text-xs text-muted-foreground mt-1">
+                                                {format(new Date(quote.created_at), "MMM d, yyyy")}
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
-                                            {quote.origin} → {quote.destination}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm capitalize">{quote.trip_type}</td>
-                                        <td className="px-6 py-4">
-                                            <Badge className={`capitalize ${getStatusColor(quote.status)}`}>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="font-medium">{quote.user?.fullName || "N/A"}</div>
+                                            <div className="text-xs text-muted-foreground">{quote.user?.email}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-1 text-sm">
+                                                <span className="font-medium">{quote.origin}</span>
+                                                <span className="text-muted-foreground">→</span>
+                                                <span className="font-medium">{quote.destination}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="capitalize text-sm">
+                                            {quote.trip_type}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={`hover:bg-opacity-80 border-none shadow-none ${getStatusColor(quote.status)}`}>
                                                 {quote.status}
                                             </Badge>
-                                        </td>
-                                        <td className="px-6 py-4 font-medium text-gray-900">
-                                            {quote.total_price ? `$${quote.total_price.toLocaleString()}` : "Pending"}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => openViewModal(quote)}
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => openEditModal(quote)}
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                        </TableCell>
+                                        <TableCell className="text-right font-medium">
+                                            {quote.total_price ? `$${quote.total_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "Pending"}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Open menu</span>
+                                                        <MoreHorizontal className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                    <DropdownMenuItem onClick={() => openViewModal(quote)}>
+                                                        <Eye className="mr-2 h-4 w-4" /> View Details
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openEditModal(quote)}>
+                                                        <Edit className="mr-2 h-4 w-4" /> Edit Quote
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
                                 ))
                             )}
-                        </tbody>
-                    </table>
-                </div>
+                        </TableBody>
+                    </Table>
+                </CardContent>
 
-                {/* Pagination */}
-                {pagination && pagination.totalPages > 1 && (
-                    <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
-                            Page {page} of {pagination.totalPages}
+                {/* Pagination Footer */}
+                {
+                    pagination && pagination.totalPages > 1 && (
+                        <div className="flex items-center justify-between px-6 py-4 border-t">
+                            <div className="text-sm text-muted-foreground">
+                                Showing <strong>{page}</strong> of <strong>{pagination.totalPages}</strong> pages
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={page === 1}
+                                    onClick={() => setPage(page - 1)}
+                                >
+                                    <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={page === pagination.totalPages}
+                                    onClick={() => setPage(page + 1)}
+                                >
+                                    Next <ChevronRight className="h-4 w-4 ml-1" />
+                                </Button>
+                            </div>
                         </div>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page === 1}
-                                onClick={() => setPage(page - 1)}
-                            >
-                                <ChevronLeft className="w-4 h-4 mr-1" />
-                                Previous
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page === pagination.totalPages}
-                                onClick={() => setPage(page + 1)}
-                            >
-                                Next
-                                <ChevronRight className="w-4 h-4 ml-1" />
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                    )
+                }
             </Card>
 
-            {/* View Quote Modal */}
+            {/* View Quote Dialog */}
             <Dialog open={!!selectedQuoteId} onOpenChange={() => setSelectedQuoteId(null)}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
@@ -240,49 +274,55 @@ export default function QuotesManagementTab() {
                         </DialogDescription>
                     </DialogHeader>
                     {selectedQuote && (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <Label className="text-gray-600">Origin</Label>
-                                    <p className="font-medium">{selectedQuote.origin}</p>
+                        <div className="space-y-6 py-2">
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label className="text-muted-foreground text-xs uppercase tracking-wider">Origin</Label>
+                                        <p className="font-medium text-lg">{selectedQuote.origin}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-muted-foreground text-xs uppercase tracking-wider">Trip Type</Label>
+                                        <p className="font-medium capitalize">{selectedQuote.trip_type}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-muted-foreground text-xs uppercase tracking-wider">Status</Label>
+                                        <div>
+                                            <Badge className={`mt-1 capitalize ${getStatusColor(selectedQuote.status)}`}>
+                                                {selectedQuote.status}
+                                            </Badge>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <Label className="text-gray-600">Destination</Label>
-                                    <p className="font-medium">{selectedQuote.destination}</p>
-                                </div>
-                                <div>
-                                    <Label className="text-gray-600">Trip Type</Label>
-                                    <p className="font-medium capitalize">{selectedQuote.trip_type}</p>
-                                </div>
-                                <div>
-                                    <Label className="text-gray-600">Status</Label>
-                                    <Badge className={getStatusColor(selectedQuote.status)}>
-                                        {selectedQuote.status}
-                                    </Badge>
-                                </div>
-                                <div>
-                                    <Label className="text-gray-600">Quoted Price</Label>
-                                    <p className="font-medium text-lg">
-                                        {selectedQuote.total_price ? `$${selectedQuote.total_price.toFixed(2)}` : "Not set"}
-                                    </p>
-                                </div>
-                                <div>
-                                    <Label className="text-gray-600">Created</Label>
-                                    <p className="font-medium">
-                                        {new Date(selectedQuote.created_at).toLocaleDateString()}
-                                    </p>
+                                <div className="space-y-4">
+                                    <div>
+                                        <Label className="text-muted-foreground text-xs uppercase tracking-wider">Destination</Label>
+                                        <p className="font-medium text-lg">{selectedQuote.destination}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-muted-foreground text-xs uppercase tracking-wider">Quoted Price</Label>
+                                        <p className="font-medium text-lg text-primary font-bold">
+                                            {selectedQuote.total_price ? `$${selectedQuote.total_price.toFixed(2)}` : "Not set"}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-muted-foreground text-xs uppercase tracking-wider">Requested On</Label>
+                                        <p className="font-medium">
+                                            {format(new Date(selectedQuote.created_at), "PPP")}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="border-t pt-4">
-                                <h3 className="font-semibold mb-2">Customer Information</h3>
-                                <div className="grid grid-cols-2 gap-4">
+                                <h4 className="font-semibold mb-3">Customer Information</h4>
+                                <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg">
                                     <div>
-                                        <Label className="text-gray-600">Name</Label>
+                                        <Label className="text-muted-foreground text-xs">Name</Label>
                                         <p className="font-medium">{selectedQuote.user?.fullName || "N/A"}</p>
                                     </div>
                                     <div>
-                                        <Label className="text-gray-600">Email</Label>
+                                        <Label className="text-muted-foreground text-xs">Email</Label>
                                         <p className="font-medium">{selectedQuote.user?.email || "N/A"}</p>
                                     </div>
                                 </div>
@@ -292,18 +332,18 @@ export default function QuotesManagementTab() {
                 </DialogContent>
             </Dialog>
 
-            {/* Edit Quote Modal */}
+            {/* Edit Quote Dialog */}
             <Dialog open={!!editingQuoteId} onOpenChange={() => setEditingQuoteId(null)}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>
                         <DialogTitle>Update Quote</DialogTitle>
                         <DialogDescription>
-                            Set pricing and update status for this quote request
+                            Set pricing and update status for this quote request.
                         </DialogDescription>
                     </DialogHeader>
                     {editingQuote && (
-                        <div className="space-y-4">
-                            <div>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
                                 <Label>Status</Label>
                                 <Select
                                     value={editForm.status}
@@ -322,7 +362,7 @@ export default function QuotesManagementTab() {
                                 </Select>
                             </div>
 
-                            <div>
+                            <div className="space-y-2">
                                 <Label>Quoted Price ($)</Label>
                                 <Input
                                     type="number"
@@ -332,7 +372,7 @@ export default function QuotesManagementTab() {
                                 />
                             </div>
 
-                            <div>
+                            <div className="space-y-2">
                                 <Label>Agent Notes</Label>
                                 <Textarea
                                     placeholder="Add internal notes about pricing, availability, etc..."
@@ -341,24 +381,14 @@ export default function QuotesManagementTab() {
                                     rows={4}
                                 />
                             </div>
-
-                            <div className="flex gap-2 pt-4">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setEditingQuoteId(null)}
-                                    className="flex-1"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    onClick={handleUpdateQuote}
-                                    className="flex-1"
-                                >
-                                    Save Changes
-                                </Button>
-                            </div>
                         </div>
                     )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setEditingQuoteId(null)}>Cancel</Button>
+                        <Button onClick={handleUpdateQuote} disabled={isUpdating}>
+                            {isUpdating ? "Saving..." : "Save Changes"}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>

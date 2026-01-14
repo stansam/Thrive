@@ -1,14 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useBookings, useBooking, useUpdateBooking, useCancelBooking } from "@/lib/hooks/use-admin-api";
-import { Eye, Edit, Ban, ChevronLeft, ChevronRight } from "lucide-react";
+import { Eye, Edit, Ban, ChevronLeft, ChevronRight, MoreHorizontal, Calendar } from "lucide-react";
 import type { AdminBooking } from "@/lib/types/admin.d.ts";
+import { DatePickerWithRange } from "@/components/ui/date-range-picker";
+import { DateRange } from "react-day-picker";
 import {
     Dialog,
     DialogContent,
@@ -17,6 +26,14 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
     Select,
     SelectContent,
@@ -34,21 +51,30 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 
 export default function BookingsManagementTab() {
     const [page, setPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState("all");
+    const [bookingTypeFilter, setBookingTypeFilter] = useState("all");
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
     const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
     const [editingBookingId, setEditingBookingId] = useState<string | null>(null);
     const [cancelBookingId, setCancelBookingId] = useState<string | null>(null);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [editForm, setEditForm] = useState<any>({});
+    const { toast } = useToast();
     const [cancelReason, setCancelReason] = useState("");
 
     const { bookings, pagination, isLoading, refresh } = useBookings({
         page,
         status: statusFilter === "all" ? "" : statusFilter,
+        bookingType: bookingTypeFilter === "all" ? "" : bookingTypeFilter,
+        startDate: dateRange?.from?.toISOString(),
+        endDate: dateRange?.to?.toISOString(),
     });
 
     const { booking: selectedBooking, isLoading: loadingBooking } = useBooking(selectedBookingId);
@@ -75,9 +101,17 @@ export default function BookingsManagementTab() {
             setEditingBookingId(null);
             setEditForm({});
             refresh();
-            alert("Booking updated successfully!");
+            toast({
+                title: "Booking Updated",
+                description: "The booking status and payment status have been updated.",
+            });
         } catch (error: any) {
-            alert(error?.message || "Failed to update booking");
+            console.error("Failed to update booking", error);
+            toast({
+                variant: "destructive",
+                title: "Update Failed",
+                description: "Could not update the booking. Please try again.",
+            });
         }
     };
 
@@ -89,9 +123,17 @@ export default function BookingsManagementTab() {
             setCancelBookingId(null);
             setCancelReason("");
             refresh();
-            alert("Booking cancelled successfully!");
+            toast({
+                title: "Booking Cancelled",
+                description: "The booking has been successfully cancelled.",
+            });
         } catch (error: any) {
-            alert(error?.message || "Failed to cancel booking");
+            console.error("Failed to cancel booking", error);
+            toast({
+                variant: "destructive",
+                title: "Cancellation Failed",
+                description: "Could not cancel the booking. Please try again.",
+            });
         }
     };
 
@@ -104,12 +146,24 @@ export default function BookingsManagementTab() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             {/* Filters */}
-            <Card className="p-6">
-                <div className="flex gap-4">
+            <div className="flex justify-end">
+                <div className="flex flex-col sm:flex-row gap-2 items-center">
+                    <DatePickerWithRange date={dateRange} setDate={setDateRange} />
+                    <Select value={bookingTypeFilter} onValueChange={setBookingTypeFilter}>
+                        <SelectTrigger className="w-[180px]">
+                            <SelectValue placeholder="All Booking Types" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Types</SelectItem>
+                            <SelectItem value="flight">Flight</SelectItem>
+                            <SelectItem value="hotel">Hotel</SelectItem>
+                            <SelectItem value="package">Package</SelectItem>
+                        </SelectContent>
+                    </Select>
                     <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-[200px]">
+                        <SelectTrigger className="w-[180px]">
                             <SelectValue placeholder="All Status" />
                         </SelectTrigger>
                         <SelectContent>
@@ -122,145 +176,152 @@ export default function BookingsManagementTab() {
                         </SelectContent>
                     </Select>
                 </div>
-            </Card>
+            </div>
 
-            {/* Bookings Table */}
-            <Card className="overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50 border-b">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Reference
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Customer
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Route
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Type
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Status
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Amount
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200">
+            {/* Bookings Table Card */}
+            <Card>
+                <CardHeader className="px-6 py-4 border-b">
+                    <CardTitle>Bookings</CardTitle>
+                    <CardDescription>
+                        Manage flight bookings and reservation status.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="p-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[150px]">Reference</TableHead>
+                                <TableHead className="w-[200px]">Customer</TableHead>
+                                <TableHead>Route</TableHead>
+                                <TableHead>Dates</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
                             {isLoading ? (
                                 Array(5).fill(0).map((_, i) => (
-                                    <tr key={i}>
-                                        <td colSpan={7} className="px-6 py-4">
-                                            <Skeleton className="h-12 w-full" />
-                                        </td>
-                                    </tr>
+                                    <TableRow key={i}>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-24 mt-1" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                                        <TableCell><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
+                                    </TableRow>
                                 ))
                             ) : bookings?.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                                        No bookings found
-                                    </td>
-                                </tr>
+                                <TableRow>
+                                    <TableCell colSpan={7} className="h-24 text-center">
+                                        No bookings found.
+                                    </TableCell>
+                                </TableRow>
                             ) : (
                                 bookings?.map((booking: AdminBooking) => (
-                                    <tr key={booking.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 font-medium text-gray-900">
+                                    <TableRow key={booking.id}>
+                                        <TableCell className="font-medium">
                                             {booking.booking_reference}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div>
-                                                <div className="text-sm font-medium text-gray-900">
-                                                    {booking.customer?.fullName || "N/A"}
-                                                </div>
-                                                <div className="text-sm text-gray-500">
-                                                    {booking.customer?.email}
-                                                </div>
+                                            <div className="text-xs text-muted-foreground capitalize mt-1">
+                                                {booking.booking_type}
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">
-                                            {booking.origin} → {booking.destination}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm capitalize">{booking.booking_type}</td>
-                                        <td className="px-6 py-4">
-                                            <Badge className={`capitalize ${getStatusColor(booking.status)}`}>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="font-medium">{booking.customer?.fullName || "N/A"}</div>
+                                            <div className="text-xs text-muted-foreground">{booking.customer?.email}</div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-1 text-sm">
+                                                <Badge variant="outline" className="font-normal">{booking.origin}</Badge>
+                                                <span className="text-muted-foreground">→</span>
+                                                <Badge variant="outline" className="font-normal">{booking.destination}</Badge>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-col text-sm">
+                                                <span className="flex items-center gap-1">
+                                                    <Calendar className="h-3 w-3 text-muted-foreground" />
+                                                    {booking.departure_date ? format(new Date(booking.departure_date), "MMM d, yyyy") : "N/A"}
+                                                </span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge className={`hover:bg-opacity-80 border-none shadow-none ${getStatusColor(booking.status)}`}>
                                                 {booking.status}
                                             </Badge>
-                                        </td>
-                                        <td className="px-6 py-4 font-medium text-gray-900">
-                                            ${booking.total_price.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setSelectedBookingId(booking.id)}
-                                                >
-                                                    <Eye className="w-4 h-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => openEditModal(booking)}
-                                                >
-                                                    <Edit className="w-4 h-4" />
-                                                </Button>
-                                                {(booking.status === "pending" || booking.status === "confirmed") && (
-                                                    <Button
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        onClick={() => setCancelBookingId(booking.id)}
-                                                    >
-                                                        <Ban className="w-4 h-4" />
+                                        </TableCell>
+                                        <TableCell className="text-right font-medium">
+                                            ${booking.total_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" className="h-8 w-8 p-0">
+                                                        <span className="sr-only">Open menu</span>
+                                                        <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                    <DropdownMenuItem onClick={() => setSelectedBookingId(booking.id)}>
+                                                        <Eye className="mr-2 h-4 w-4" /> View Details
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openEditModal(booking)}>
+                                                        <Edit className="mr-2 h-4 w-4" /> Update Status
+                                                    </DropdownMenuItem>
+                                                    {(booking.status === "pending" || booking.status === "confirmed") && (
+                                                        <>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                className="text-destructive focus:text-destructive"
+                                                                onClick={() => setCancelBookingId(booking.id)}
+                                                            >
+                                                                <Ban className="mr-2 h-4 w-4" /> Cancel Booking
+                                                            </DropdownMenuItem>
+                                                        </>
+                                                    )}
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </TableCell>
+                                    </TableRow>
                                 ))
                             )}
-                        </tbody>
-                    </table>
-                </div>
+                        </TableBody>
+                    </Table>
+                </CardContent>
 
-                {/* Pagination */}
-                {pagination && pagination.totalPages > 1 && (
-                    <div className="px-6 py-4 border-t bg-gray-50 flex items-center justify-between">
-                        <div className="text-sm text-gray-700">
-                            Page {page} of {pagination.totalPages}
+                {/* Pagination Footer */}
+                {
+                    pagination && pagination.totalPages > 1 && (
+                        <div className="flex items-center justify-between px-6 py-4 border-t">
+                            <div className="text-sm text-muted-foreground">
+                                Showing <strong>{page}</strong> of <strong>{pagination.totalPages}</strong> pages
+                            </div>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={page === 1}
+                                    onClick={() => setPage(page - 1)}
+                                >
+                                    <ChevronLeft className="h-4 w-4 mr-1" /> Previous
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={page === pagination.totalPages}
+                                    onClick={() => setPage(page + 1)}
+                                >
+                                    Next <ChevronRight className="h-4 w-4 ml-1" />
+                                </Button>
+                            </div>
                         </div>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page === 1}
-                                onClick={() => setPage(page - 1)}
-                            >
-                                <ChevronLeft className="w-4 h-4 mr-1" />
-                                Previous
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page === pagination.totalPages}
-                                onClick={() => setPage(page + 1)}
-                            >
-                                Next
-                                <ChevronRight className="w-4 h-4 ml-1" />
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                    )
+                }
             </Card>
 
-            {/* Booking Details Modal */}
+            {/* View Booking Dialog */}
             <Dialog open={!!selectedBookingId} onOpenChange={() => setSelectedBookingId(null)}>
                 <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
@@ -270,42 +331,47 @@ export default function BookingsManagementTab() {
                         </DialogDescription>
                     </DialogHeader>
                     {loadingBooking ? (
-                        <Skeleton className="h-64 w-full" />
+                        <div className="space-y-4 py-4">
+                            <Skeleton className="h-32 w-full" />
+                            <Skeleton className="h-32 w-full" />
+                        </div>
                     ) : selectedBooking ? (
                         <div className="space-y-6">
                             {/* Basic Info */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <Label className="text-gray-600">Status</Label>
-                                    <Badge className={`capitalize ${getStatusColor(selectedBooking.status)}`}>
-                                        {selectedBooking.status}
-                                    </Badge>
+                                    <Label className="text-muted-foreground">Status</Label>
+                                    <div>
+                                        <Badge className={`capitalize mt-1 ${getStatusColor(selectedBooking.status)}`}>
+                                            {selectedBooking.status}
+                                        </Badge>
+                                    </div>
                                 </div>
                                 <div>
-                                    <Label className="text-gray-600">Type</Label>
+                                    <Label className="text-muted-foreground">Type</Label>
                                     <p className="font-medium capitalize">{selectedBooking.booking_type}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-gray-600">Origin</Label>
-                                    <p className="font-medium">{selectedBooking.origin || "N/A"}</p>
+                                    <Label className="text-muted-foreground">Origin</Label>
+                                    <p className="font-medium text-lg">{selectedBooking.origin || "N/A"}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-gray-600">Destination</Label>
-                                    <p className="font-medium">{selectedBooking.destination || "N/A"}</p>
+                                    <Label className="text-muted-foreground">Destination</Label>
+                                    <p className="font-medium text-lg">{selectedBooking.destination || "N/A"}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-gray-600">Departure Date</Label>
+                                    <Label className="text-muted-foreground">Departure</Label>
                                     <p className="font-medium">
                                         {selectedBooking.departure_date
-                                            ? new Date(selectedBooking.departure_date).toLocaleDateString()
+                                            ? format(new Date(selectedBooking.departure_date), "PPP")
                                             : "N/A"}
                                     </p>
                                 </div>
                                 {selectedBooking.return_date && (
                                     <div>
-                                        <Label className="text-gray-600">Return Date</Label>
+                                        <Label className="text-muted-foreground">Return</Label>
                                         <p className="font-medium">
-                                            {new Date(selectedBooking.return_date).toLocaleDateString()}
+                                            {format(new Date(selectedBooking.return_date), "PPP")}
                                         </p>
                                     </div>
                                 )}
@@ -313,14 +379,14 @@ export default function BookingsManagementTab() {
 
                             {/* Customer Info */}
                             <div className="border-t pt-4">
-                                <h3 className="font-semibold mb-3">Customer Information</h3>
+                                <h4 className="font-semibold mb-3">Customer Information</h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <Label className="text-gray-600">Name</Label>
+                                        <Label className="text-muted-foreground">Name</Label>
                                         <p className="font-medium">{selectedBooking.customer?.fullName || "N/A"}</p>
                                     </div>
                                     <div>
-                                        <Label className="text-gray-600">Email</Label>
+                                        <Label className="text-muted-foreground">Email</Label>
                                         <p className="font-medium">{selectedBooking.customer?.email || "N/A"}</p>
                                     </div>
                                 </div>
@@ -329,11 +395,11 @@ export default function BookingsManagementTab() {
                             {/* Passengers */}
                             {selectedBooking.passengers && selectedBooking.passengers.length > 0 && (
                                 <div className="border-t pt-4">
-                                    <h3 className="font-semibold mb-3">Passengers</h3>
+                                    <h4 className="font-semibold mb-3">Passengers</h4>
                                     <div className="space-y-2">
                                         {selectedBooking.passengers.map((passenger: any, idx: number) => (
-                                            <div key={idx} className="flex items-center justify-between p-2 border rounded">
-                                                <span>{passenger.firstName} {passenger.lastName}</span>
+                                            <div key={idx} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                                <span className="font-medium">{passenger.firstName} {passenger.lastName}</span>
                                                 <Badge variant="outline" className="capitalize">{passenger.passengerType}</Badge>
                                             </div>
                                         ))}
@@ -341,53 +407,51 @@ export default function BookingsManagementTab() {
                                 </div>
                             )}
 
-                            {/* Pricing */}
+                            {/* Payment Summary */}
                             <div className="border-t pt-4">
-                                <h3 className="font-semibold mb-3">Price Breakdown</h3>
-                                <div className="space-y-2 bg-gray-50 p-4 rounded">
-                                    <div className="flex justify-between text-lg font-bold">
-                                        <span>Total Amount</span>
-                                        <span>${selectedBooking.total_price.toFixed(2)}</span>
-                                    </div>
+                                <h4 className="font-semibold mb-3">Payment Summary</h4>
+                                <div className="bg-muted min-w-[250px] p-4 rounded-lg inline-block">
+                                    <div className="text-sm text-muted-foreground">Total Amount</div>
+                                    <div className="text-2xl font-bold">${selectedBooking.total_price.toFixed(2)}</div>
                                 </div>
-                            </div>
 
-                            {/* Payments */}
-                            {selectedBooking.payments && selectedBooking.payments.length > 0 && (
-                                <div className="border-t pt-4">
-                                    <h3 className="font-semibold mb-3">Payment History</h3>
-                                    <div className="space-y-2">
+                                {selectedBooking.payments && selectedBooking.payments.length > 0 && (
+                                    <div className="mt-4 space-y-2">
+                                        <Label className="text-muted-foreground mb-2 block">Payment History</Label>
                                         {selectedBooking.payments.map((payment: any, idx: number) => (
-                                            <div key={idx} className="flex items-center justify-between p-2 border rounded">
+                                            <div key={idx} className="flex items-center justify-between p-2 text-sm border-b last:border-0 border-dashed border-gray-200">
                                                 <div>
-                                                    <p className="font-medium">{payment.payment_reference}</p>
-                                                    <p className="text-sm text-gray-500">${payment.amount.toFixed(2)}</p>
+                                                    <span className="font-mono text-xs text-muted-foreground mr-2">{payment.payment_reference}</span>
+                                                    <span>${payment.amount.toFixed(2)}</span>
                                                 </div>
-                                                <Badge className="capitalize">{payment.status}</Badge>
+                                                <Badge variant="secondary" className="text-xs h-5">{payment.status}</Badge>
                                             </div>
                                         ))}
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     ) : null}
                 </DialogContent>
             </Dialog>
 
-            {/* Edit Booking Modal */}
+            {/* Edit Booking Dialog */}
             <Dialog open={!!editingBookingId} onOpenChange={() => setEditingBookingId(null)}>
-                <DialogContent className="max-w-md">
+                <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Update Booking</DialogTitle>
                         <DialogDescription>
-                            Modify booking status and add admin notes
+                            Modify booking status and add admin notes.
                         </DialogDescription>
                     </DialogHeader>
                     {loadingEditBooking ? (
-                        <Skeleton className="h-48 w-full" />
+                        <div className="space-y-4 py-4">
+                            <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-24 w-full" />
+                        </div>
                     ) : editingBooking ? (
-                        <div className="space-y-4">
-                            <div>
+                        <div className="space-y-4 py-4">
+                            <div className="space-y-2">
                                 <Label>Status</Label>
                                 <Select
                                     value={editForm.status}
@@ -406,7 +470,7 @@ export default function BookingsManagementTab() {
                                 </Select>
                             </div>
 
-                            <div>
+                            <div className="space-y-2">
                                 <Label>Admin Notes</Label>
                                 <Textarea
                                     placeholder="Add internal notes about this booking..."
@@ -415,48 +479,35 @@ export default function BookingsManagementTab() {
                                     rows={4}
                                 />
                             </div>
-
-                            <div className="flex gap-2 pt-4">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setEditingBookingId(null)}
-                                    className="flex-1"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    onClick={handleUpdateBooking}
-                                    disabled={updating}
-                                    className="flex-1"
-                                >
-                                    {updating ? "Updating..." : "Save Changes"}
-                                </Button>
-                            </div>
                         </div>
                     ) : null}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setEditingBookingId(null)}>Cancel</Button>
+                        <Button onClick={handleUpdateBooking} disabled={updating}>
+                            {updating ? "Updating..." : "Save Changes"}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            {/* Cancel Booking Dialog */}
+            {/* Cancel Booking Alert Dialog */}
             <AlertDialog open={!!cancelBookingId} onOpenChange={() => setCancelBookingId(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Cancel Booking</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Provide a reason for cancellation. This action will update the booking status.
+                            Are you sure you want to cancel this booking? This action might trigger a refund process depending on the policy.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div>
-                            <Label htmlFor="cancel-reason">Cancellation Reason</Label>
-                            <Textarea
-                                id="cancel-reason"
-                                placeholder="e.g., Customer request, flight unavailable..."
-                                value={cancelReason}
-                                onChange={(e) => setCancelReason(e.target.value)}
-                                rows={3}
-                            />
-                        </div>
+                    <div className="py-4">
+                        <Label htmlFor="cancel-reason" className="mb-2 block">Cancellation Reason (Required)</Label>
+                        <Textarea
+                            id="cancel-reason"
+                            placeholder="e.g., Customer request, flight unavailable..."
+                            value={cancelReason}
+                            onChange={(e) => setCancelReason(e.target.value)}
+                            rows={3}
+                        />
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setCancelReason("")}>
@@ -464,10 +515,10 @@ export default function BookingsManagementTab() {
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleCancelBooking}
-                            disabled={!cancelReason.trim()}
+                            disabled={!cancelReason.trim() || cancelling}
                             className="bg-destructive hover:bg-destructive/90"
                         >
-                            Cancel Booking
+                            {cancelling ? "Cancelling..." : "Confirm Cancellation"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
