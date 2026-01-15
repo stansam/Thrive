@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 import { useFeaturedPackages } from "@/lib/hooks/use-packages";
 import { Package } from "@/lib/types/package";
 import { AlertCircle } from "lucide-react";
+import { WishlistButton } from "@/components/blocks/wishlist-button";
+import { useMyPackages } from "@/lib/hooks/use-packages-api";
 
 // Fallback data if API returns empty or fails
 const FALLBACK_PACKAGES: Partial<Package>[] = [
@@ -78,6 +80,8 @@ export function FeaturedTours() {
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const { packages: apiPackages, isLoading, isError } = useFeaturedPackages();
+    const { saved } = useMyPackages();
+    const isPackageSaved = (id: string) => saved?.some((p: any) => p.id === id);
 
     // Determine packages to display: API data -> Fallback data
     const packages = (apiPackages && apiPackages.length > 0) ? apiPackages : FALLBACK_PACKAGES;
@@ -243,6 +247,13 @@ export function FeaturedTours() {
                                                     <div className="text-xs font-bold text-white uppercase tracking-wider bg-black/60 backdrop-blur-sm px-3 py-1 rounded-full">
                                                         {item.duration_days} Days • {item.duration_nights} Nights
                                                     </div>
+                                                </div>
+                                                <div className="absolute top-4 right-4">
+                                                    <WishlistButton
+                                                        packageId={item.id || ''}
+                                                        initialIsSaved={isPackageSaved(item.id || '')}
+                                                        className="bg-black/20 hover:bg-black/40 text-white"
+                                                    />
                                                 </div>
                                             </div>
 

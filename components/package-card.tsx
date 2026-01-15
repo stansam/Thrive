@@ -6,13 +6,15 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Calendar, Star, ArrowRight } from "lucide-react"
+import { WishlistButton } from "@/components/blocks/wishlist-button"
 
 interface PackageCardProps {
     pkg: any
     className?: string
+    isSaved?: boolean
 }
 
-export function PackageCard({ pkg, className }: PackageCardProps) {
+export function PackageCard({ pkg, className, isSaved = false }: PackageCardProps) {
     // Determine image - use unplash fallback if needed
     const imageUrl = pkg.featured_image || "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80"
 
@@ -29,6 +31,13 @@ export function PackageCard({ pkg, className }: PackageCardProps) {
                         Featured
                     </Badge>
                 )}
+                <div className="absolute top-2 left-2 z-10">
+                    <WishlistButton
+                        packageId={pkg.id}
+                        initialIsSaved={isSaved}
+                        className="bg-black/20 hover:bg-black/40 text-white"
+                    />
+                </div>
                 <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/80 to-transparent p-4">
                     <div className="flex items-center gap-1 text-xs font-semibold text-emerald-400">
                         <MapPin className="h-3 w-3" />

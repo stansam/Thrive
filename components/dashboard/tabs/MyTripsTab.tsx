@@ -7,7 +7,9 @@
 
 import { useState } from 'react';
 import { useTrips, useTripDetails } from '@/lib/hooks/use-dashboard-api';
+import { useMyPackages } from '@/lib/hooks/use-packages-api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { WishlistButton } from '@/components/blocks/wishlist-button';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -32,9 +34,10 @@ import { MapPin, Calendar, Users, Star, Hotel, AlertCircle, ChevronLeft, Chevron
 import { format } from 'date-fns';
 import type { Trip } from '@/lib/types/dashboard';
 
-function TripCard({ trip, onViewDetails }: {
+function TripCard({ trip, onViewDetails, isSaved }: {
     trip: Trip;
     onViewDetails: () => void;
+    isSaved: boolean;
 }) {
     const statusColors: Record<string, string> = {
         confirmed: 'bg-green-500',
@@ -46,12 +49,19 @@ function TripCard({ trip, onViewDetails }: {
     return (
         <Card className="hover:shadow-md transition-shadow overflow-hidden">
             {trip.package?.featuredImage && (
-                <div className="h-48 w-full overflow-hidden">
+                <div className="h-48 w-full overflow-hidden relative">
                     <img
                         src={trip.package.featuredImage}
                         alt={trip.package.name}
                         className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                     />
+                    <div className="absolute top-2 right-2">
+                        <WishlistButton
+                            packageId={trip.package?.id || ''}
+                            initialIsSaved={isSaved}
+                            className="bg-black/20 hover:bg-black/40 text-white"
+                        />
+                    </div>
                 </div>
             )}
             <CardHeader>
@@ -130,6 +140,7 @@ export default function MyTripsTab() {
     const [statusFilter, setStatusFilter] = useState('all');
     const [page, setPage] = useState(1);
     const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
+    const { saved } = useMyPackages();
 
     const { trips, pagination, isLoading, isError, error } = useTrips({
         status: statusFilter === 'all' ? undefined : statusFilter,
@@ -205,6 +216,7 @@ export default function MyTripsTab() {
                                 key={trip.id}
                                 trip={trip}
                                 onViewDetails={() => setSelectedTripId(trip.id)}
+                                isSaved={saved.some((p: any) => p.id === trip.package?.id)}
                             />
                         ))}
                     </div>

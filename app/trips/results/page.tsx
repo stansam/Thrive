@@ -12,6 +12,7 @@ import { PackageCard } from "@/components/package-card"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useMyPackages } from '@/lib/hooks/use-packages-api';
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Separator } from "@/components/ui/separator"
@@ -56,6 +57,8 @@ function SearchResultsContent() {
     const { data: result, error, isLoading } = useSWR(getApiUrl(), fetcher)
     const packages = result?.data?.items || []
     const totalCount = result?.data?.total || 0
+    const { saved } = useMyPackages();
+    const isPackageSaved = (id: string) => saved?.some((p: any) => p.id === id);
 
     // Handle price change
     const handlePriceChange = (value: number[]) => {
@@ -95,7 +98,7 @@ function SearchResultsContent() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {packages.map((pkg: any) => (
-                        <PackageCard key={pkg.id} pkg={pkg} />
+                        <PackageCard key={pkg.id} pkg={pkg} isSaved={isPackageSaved(pkg.id)} />
                     ))}
                 </div>
             </div>

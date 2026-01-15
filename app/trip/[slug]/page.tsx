@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { MapPin, Calendar, Star, Check, X, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { WishlistButton } from "@/components/blocks/wishlist-button"
+import { useMyPackages } from "@/lib/hooks/use-packages-api"
 
 const fetcher = (url: string) => axios.get(url).then(res => res.data)
 
@@ -21,6 +23,8 @@ export default function TripDetailsPage() {
 
     const { data: result, error, isLoading } = useSWR(slug ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/packages/slug/${slug}` : null, fetcher)
     const pkg = result?.data
+    const { saved } = useMyPackages()
+    const isSaved = saved?.some((p: any) => p.id === pkg?.id)
 
     if (isLoading) {
         return (
@@ -57,6 +61,14 @@ export default function TripDetailsPage() {
                         className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                    <div className="absolute top-24 right-4 md:right-8 z-10">
+                        <WishlistButton
+                            packageId={pkg.id}
+                            initialIsSaved={isSaved}
+                            variant="default"
+                            className="bg-black/40 hover:bg-black/60 text-white border-white/20 backdrop-blur-md"
+                        />
+                    </div>
 
                     <div className="absolute bottom-0 left-0 w-full p-8 md:p-16">
                         <div className="container mx-auto">
