@@ -229,7 +229,7 @@ export default function Navbar() {
                                         <div className="p-2">
                                             <Button
                                                 variant="outline"
-                                                className="w-full h-8 text-xs border-white/20 hover:bg-white/10 hover:text-white"
+                                                className="w-full h-8 text-xs text-gray-900 border-white/20 hover:bg-white/10 hover:text-white"
                                                 onClick={() => setIsModalOpen(true)}
                                             >
                                                 View all notifications
