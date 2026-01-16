@@ -3,10 +3,10 @@
 import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
-import axios from "axios";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { Loader2, AlertCircle, CheckCircle2, ShieldCheck, Lock } from "lucide-react";
+import { useBookingApi, useBookingDetails } from "@/lib/hooks/use-booking-api";
 import { format } from "date-fns";
 import Navbar from "@/components/ui/navbar";
 import FooterSection from "@/components/ui/footer-section";
@@ -15,14 +15,13 @@ import { useToast } from "@/hooks/use-toast";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-const fetcher = (url: string) => axios.get(url).then(res => res.data);
-
 function CheckoutForm({ booking, clientSecret }: { booking: any, clientSecret: string }) {
     const stripe = useStripe();
     const elements = useElements();
     const [isLoading, setIsLoading] = React.useState(false);
     const [message, setMessage] = React.useState<string | null>(null);
     const router = useRouter();
+    const { confirmPayment } = useBookingApi();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,12 +42,9 @@ function CheckoutForm({ booking, clientSecret }: { booking: any, clientSecret: s
             setMessage(error.message || "An unexpected error occurred.");
             setIsLoading(false);
         } else if (paymentIntent && paymentIntent.status === "succeeded") {
-            // Confirm explicitly with backend
+            // Confirm on backend via proxy
             try {
-                await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/confirm`, {
-                    paymentIntentId: paymentIntent.id,
-                    bookingReference: booking.bookingReference
-                });
+                await confirmPayment(paymentIntent.id, booking.booking_reference);
                 router.push(`/booking/${booking.bookingReference}/confirmation`);
             } catch (err) {
                 setMessage("Payment passed but server confirmation failed. Please contact support.");
@@ -88,25 +84,40 @@ export default function PaymentPage() {
     const reference = params?.reference as string;
     const [clientSecret, setClientSecret] = React.useState("");
 
-    // Fetch Booking
-    const { data: result, error, isLoading: isBookingLoading } = useSWR(
-        reference ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/bookings/reference/${reference}` : null,
-        fetcher
-    );
-    const booking = result?.data;
+    // Use custom hooks
+    const { booking, isLoading: bookingLoading, isError: bookingError } = useBookingDetails(reference);
+    const { createPaymentIntent, confirmPayment } = useBookingApi();
 
-    // Create Payment Intent on Load (if confirmed)
+    const [error, setError] = React.useState<string | null>(null);
+
+    // Handle loading/error states from SWR
     React.useEffect(() => {
-        if (booking && booking.status === 'confirmed' && !clientSecret) {
-            axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/payments/create-intent`, {
-                bookingReference: booking.bookingReference
-            })
-                .then(res => setClientSecret(res.data.data.clientSecret))
-                .catch(err => console.error("Intent Error", err));
+        if (bookingError) {
+            setError("Failed to load booking details.");
         }
-    }, [booking, clientSecret]);
+    }, [bookingError]);
 
-    if (isBookingLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-emerald-500"><Loader2 className="animate-spin h-8 w-8" /></div>;
+    // Create Payment Intent
+    React.useEffect(() => {
+        if (booking && booking.status === 'confirmed' && !booking.is_paid && !clientSecret) { // Added !clientSecret to prevent re-creating intent
+            const initPayment = async () => {
+                try {
+                    const res = await createPaymentIntent(booking.booking_reference);
+                    if (res.success) {
+                        setClientSecret(res.data.clientSecret);
+                    }
+                } catch (err) {
+                    console.error("Payment intent error:", err);
+                    setError("Failed to initialize payment.");
+                }
+            };
+            initPayment();
+        }
+    }, [booking, clientSecret, createPaymentIntent]); // Added clientSecret and createPaymentIntent to dependency array
+
+    if (bookingLoading) return <div className="min-h-screen bg-black flex items-center justify-center text-emerald-500"><Loader2 className="animate-spin h-8 w-8" /></div>;
+
+    if (error) return <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">{error}</div>;
 
     if (!booking) return <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">Booking not found.</div>;
 

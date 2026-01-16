@@ -6,8 +6,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
-import axios from "axios";
 import { CalendarIcon, CheckCircle2, Loader2, Plane, Users, X } from "lucide-react";
+import { useBookingApi } from "@/lib/hooks/use-booking-api";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -90,28 +90,24 @@ export function BookingWizard({ pkg, open, onOpenChange }: BookingWizardProps) {
         },
     });
 
+    const { submitBookingRequest } = useBookingApi();
+
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsSubmitting(true);
         try {
-            // Mock submitting to backend
             const payload = {
                 packageId: pkg.id,
                 ...values,
-                // Convert strings to numbers for backend
                 numAdults: parseInt(values.numAdults),
                 numChildren: parseInt(values.numChildren || "0"),
                 numInfants: parseInt(values.numInfants || "0"),
                 startDate: values.startDate.toISOString(),
             };
 
-            const response = await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/client/dashboard/bookings/request`, payload, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}` // Simple auth check
-                }
-            });
+            const response = await submitBookingRequest(payload);
 
-            if (response.data.data) {
-                setBookingRef(response.data.data.booking.booking_reference);
+            if (response.data) {
+                setBookingRef(response.data.booking.booking_reference);
                 setIsSuccess(true);
                 toast({
                     title: "Request Received",
@@ -123,7 +119,7 @@ export function BookingWizard({ pkg, open, onOpenChange }: BookingWizardProps) {
             toast({
                 variant: "destructive",
                 title: "Submission Failed",
-                description: error.response?.data?.message || "Please check your network connection."
+                description: error.message || "Please check your network connection."
             });
         } finally {
             setIsSubmitting(false);
