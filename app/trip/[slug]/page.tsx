@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { PackageHero } from "@/components/blocks/package-hero";
 import { PackageItinerary } from "@/components/blocks/package-itinerary";
-import { BookingInquiryModal } from "@/components/blocks/booking-inquiry-modal";
+import { BookingWizard } from "@/components/blocks/booking-wizard";
 import { StickyBookBar } from "@/components/blocks/sticky-book-bar";
 
 const fetcher = (url: string) => axios.get(url).then(res => res.data);
@@ -257,8 +257,8 @@ export default function TripDetailsPage() {
                 {/* Mobile Sticky CTA */}
                 <StickyBookBar pkg={pkg} />
 
-                {/* Booking Modal */}
-                <BookingInquiryModal
+                {/* Booking Wizard */}
+                <BookingWizard
                     pkg={pkg}
                     open={isBookingOpen}
                     onOpenChange={setIsBookingOpen}
