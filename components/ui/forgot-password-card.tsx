@@ -1,10 +1,8 @@
-
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Eye, EyeOff, ArrowRight, AlertCircle } from "lucide-react";
+import { ArrowRight, AlertCircle, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/lib/auth-context";
 import Link from 'next/link';
 
 // Utils function to combine class names
@@ -73,7 +71,7 @@ const Alert = ({ children, variant = "error" }: { children: React.ReactNode; var
     );
 };
 
-// DotMap Component
+// DotMap Component (Duplicated for consistency)
 type RoutePoint = {
     x: number;
     y: number;
@@ -253,146 +251,42 @@ const DotMap = () => {
 // API Configuration
 const API_BASE_URL = "/api/auth";
 
-// API Service
-const authAPI = {
-    login: async (email: string, password: string, rememberMe: boolean = false) => {
-        const response = await fetch(`${API_BASE_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email, password, rememberMe }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Login failed');
-        }
-
-        return data;
-    },
-
-    googleLogin: async (idToken: string) => {
-        const response = await fetch(`${API_BASE_URL}/google`, {
-            method: 'POST',
-            // credentials: 'include',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ idToken }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Google login failed');
-        }
-
-        return data;
-    }
-};
-
-// SignInCard Component
-const SignInCard = () => {
-    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+// ForgotPasswordCard Component
+const ForgotPasswordCard = () => {
     const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [rememberMe, setRememberMe] = useState(false);
     const [isHovered, setIsHovered] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const { login } = useAuth();
 
-    const handleEmailLogin = async () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
         setError(null);
         setSuccess(null);
         setIsLoading(true);
 
         try {
-            const response = await authAPI.login(email, password, rememberMe);
-
-            // Store tokens in memory via AuthContext
-            login(response.data.user, response.data.accessToken);
-
-            setSuccess('Login successful! Redirecting...');
-
-            // Redirect after successful login
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 1000);
-
-        } catch (err: any) {
-            setError(err.message || 'An error occurred during login');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handleGoogleLogin = async () => {
-        setError(null);
-        setSuccess(null);
-
-        try {
-            if (typeof window.google === 'undefined') {
-                throw new Error('Google Sign-In SDK not loaded. Please refresh and try again.');
-            }
-
-            // Create a temporary container for the Google button
-            const buttonContainer = document.createElement('div');
-            buttonContainer.id = 'google-signin-button';
-            document.body.appendChild(buttonContainer);
-
-            window.google.accounts.id.initialize({
-                client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!!,
-                callback: async (response: any) => {
-                    setIsLoading(true);
-                    try {
-                        const result = await authAPI.googleLogin(response.credential);
-
-                        login(result.data.user, result.data.accessToken);
-
-                        setSuccess('Google login successful! Redirecting...');
-
-                        setTimeout(() => {
-                            window.location.href = '/dashboard';
-                        }, 1000);
-
-                    } catch (err: any) {
-                        setError(err.message || 'Google authentication failed');
-                    } finally {
-                        setIsLoading(false);
-                        buttonContainer.remove();
-                    }
-                }
+            const response = await fetch(`${API_BASE_URL}/forgot-password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email }),
             });
 
-            window.google.accounts.id.renderButton(
-                buttonContainer,
-                {
-                    theme: 'filled_blue',
-                    size: 'large',
-                    width: 400
-                }
-            );
+            const data = await response.json();
 
-            // Programmatically click the rendered Google button
-            setTimeout(() => {
-                const googleBtn = buttonContainer.querySelector('div[role="button"]') as HTMLElement;
-                if (googleBtn) {
-                    googleBtn.click();
-                }
-            }, 100);
+            if (!response.ok) {
+                throw new Error(data.message || 'Request failed');
+            }
+
+            setSuccess(data.message || 'If an account exists, a reset link has been sent.');
+            setEmail("");
 
         } catch (err: any) {
-            setError(err.message || 'Google login failed');
-        }
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !isLoading) {
-            handleEmailLogin();
+            setError(err.message || 'An error occurred');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -426,7 +320,7 @@ const SignInCard = () => {
                                 transition={{ delay: 0.7, duration: 0.5 }}
                                 className="text-3xl font-bold mb-2 text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500"
                             >
-                                Thrive Travel
+                                Restore Access
                             </motion.h2>
                             <motion.p
                                 initial={{ opacity: 0, y: -20 }}
@@ -434,21 +328,26 @@ const SignInCard = () => {
                                 transition={{ delay: 0.8, duration: 0.5 }}
                                 className="text-sm text-center text-gray-400 max-w-xs"
                             >
-                                Sign in to manage your bookings and custom itineraries.
+                                Recover your account to continue your journey with Thrive Travel.
                             </motion.p>
                         </div>
                     </div>
                 </div>
 
-                {/* Right side - Sign In Form */}
+                {/* Right side - Form */}
                 <div className="w-full md:w-1/2 p-8 md:p-10 flex flex-col justify-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5 }}
                     >
-                        <h1 className="text-2xl md:text-3xl font-bold mb-1">Welcome back</h1>
-                        <p className="text-gray-400 mb-8">Sign in to your account</p>
+                        <Link href="/sign-in" className="inline-flex items-center text-sm text-gray-400 hover:text-white transition-colors mb-8">
+                            <ArrowLeft className="mr-2 h-4 w-4" />
+                            Back to Sign In
+                        </Link>
+
+                        <h1 className="text-2xl md:text-3xl font-bold mb-1">Forgot Password?</h1>
+                        <p className="text-gray-400 mb-8">Enter your email to receive a reset link</p>
 
                         <AnimatePresence mode="wait">
                             {error && (
@@ -463,46 +362,7 @@ const SignInCard = () => {
                             )}
                         </AnimatePresence>
 
-                        <div className="mb-6">
-                            <button
-                                className="w-full flex items-center justify-center gap-2 bg-[#13151f] border border-[#2a2d3a] rounded-lg p-3 hover:bg-[#1a1d2b] transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                onClick={handleGoogleLogin}
-                                disabled={isLoading}
-                            >
-                                <svg className="h-5 w-5" viewBox="0 0 24 24">
-                                    <path
-                                        fill="currentColor"
-                                        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                                        fillOpacity=".54"
-                                    />
-                                    <path
-                                        fill="#4285F4"
-                                        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                    />
-                                    <path
-                                        fill="#34A853"
-                                        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                                    />
-                                    <path
-                                        fill="#FBBC05"
-                                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                                    />
-                                    <path fill="#EA4335" d="M1 1h22v22H1z" fillOpacity="0" />
-                                </svg>
-                                <span>{isLoading ? 'Connecting...' : 'Login with Google'}</span>
-                            </button>
-                        </div>
-
-                        <div className="relative my-6">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-[#2a2d3a]"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-[#090b13] text-gray-400">or</span>
-                            </div>
-                        </div>
-
-                        <div className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-1">
                                     Email <span className="text-blue-500">*</span>
@@ -512,53 +372,11 @@ const SignInCard = () => {
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    onKeyPress={handleKeyPress}
                                     placeholder="Enter your email address"
                                     required
                                     disabled={isLoading}
                                     className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-900 w-full"
                                 />
-                            </div>
-
-                            <div>
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">
-                                    Password <span className="text-blue-500">*</span>
-                                </label>
-                                <div className="relative">
-                                    <Input
-                                        id="password"
-                                        type={isPasswordVisible ? "text" : "password"}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        onKeyPress={handleKeyPress}
-                                        placeholder="Enter your password"
-                                        required
-                                        disabled={isLoading}
-                                        className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-900 w-full pr-10"
-                                    />
-                                    <button
-                                        type="button"
-                                        className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-300 cursor-pointer"
-                                        onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                                        disabled={isLoading}
-                                    >
-                                        {isPasswordVisible ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center">
-                                <input
-                                    type="checkbox"
-                                    id="rememberMe"
-                                    checked={rememberMe}
-                                    onChange={(e) => setRememberMe(e.target.checked)}
-                                    disabled={isLoading}
-                                    className="h-4 w-4 rounded border-[#2a2d3a] bg-[#13151f] text-blue-600 focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
-                                />
-                                <label htmlFor="rememberMe" className="ml-2 text-sm text-gray-300 cursor-pointer">
-                                    Remember me for 30 days
-                                </label>
                             </div>
 
                             <motion.div
@@ -569,8 +387,7 @@ const SignInCard = () => {
                                 className="pt-2"
                             >
                                 <Button
-                                    type="button"
-                                    onClick={handleEmailLogin}
+                                    type="submit"
                                     disabled={isLoading}
                                     className={cn(
                                         "w-full bg-gradient-to-r relative overflow-hidden from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-2 rounded-lg transition-all duration-300 cursor-pointer",
@@ -579,7 +396,7 @@ const SignInCard = () => {
                                     )}
                                 >
                                     <span className="flex items-center justify-center">
-                                        {isLoading ? 'Signing in...' : 'Sign in'}
+                                        {isLoading ? 'Sending...' : 'Send Reset Link'}
                                         {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
                                     </span>
                                     {isHovered && !isLoading && (
@@ -593,22 +410,7 @@ const SignInCard = () => {
                                     )}
                                 </Button>
                             </motion.div>
-
-                            <div className="text-center mt-6">
-                                <a
-                                    href="/forgot-password"
-                                    className="text-blue-500 hover:text-blue-400 text-sm transition-colors"
-                                >
-                                    Forgot password?
-                                </a>
-                            </div>
-                            <div className="text-center mt-1 text-sm text-gray-400">
-                                Don't have an account?{" "}
-                                <Link href="/sign-up" className="text-blue-500 hover:text-blue-400 transition-colors">
-                                    Sign up
-                                </Link>
-                            </div>
-                        </div>
+                        </form>
                     </motion.div>
                 </div>
             </motion.div>
@@ -616,4 +418,4 @@ const SignInCard = () => {
     );
 };
 
-export default SignInCard;
+export default ForgotPasswordCard;

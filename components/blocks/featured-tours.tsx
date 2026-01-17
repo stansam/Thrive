@@ -80,7 +80,7 @@ export function FeaturedTours() {
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const { packages: apiPackages, isLoading, isError } = useFeaturedPackages();
-    const { saved } = useMyPackages();
+    const { saved, isError: isSavedError } = useMyPackages();
     const isPackageSaved = (id: string) => saved?.some((p: any) => p.id === id);
 
     // Determine packages to display: API data -> Fallback data
@@ -249,11 +249,16 @@ export function FeaturedTours() {
                                                     </div>
                                                 </div>
                                                 <div className="absolute top-4 right-4">
-                                                    <WishlistButton
-                                                        packageId={item.id || ''}
-                                                        initialIsSaved={isPackageSaved(item.id || '')}
-                                                        className="bg-black/20 hover:bg-black/40 text-white"
-                                                    />
+                                                    {isSavedError ? (
+                                                        // <AlertCircle className="w-6 h-6 text-red-500" />
+                                                        <div style={{ display: 'none' }}></div>
+                                                    ) : (
+                                                        <WishlistButton
+                                                            packageId={item.id || ''}
+                                                            initialIsSaved={isPackageSaved(item.id || '')}
+                                                            className="bg-black/20 hover:bg-black/40 text-white"
+                                                        />
+                                                    )}
                                                 </div>
                                             </div>
 

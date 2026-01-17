@@ -449,7 +449,7 @@ const SignUpCard = () => {
                                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                             placeholder="••••••••"
                                             required
-                                            className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-200 w-full pr-10"
+                                            className="bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-900 w-full pr-10"
                                         />
                                         <button
                                             type="button"
@@ -471,7 +471,7 @@ const SignUpCard = () => {
                                             placeholder="••••••••"
                                             required
                                             className={cn(
-                                                "bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-200 w-full pr-10 transition-colors",
+                                                "bg-[#13151f] border-[#2a2d3a] placeholder:text-gray-500 text-gray-900 w-full pr-10 transition-colors",
                                                 formData.confirmPassword.length > 0 && !isPasswordMatch ? "border-red-500 focus:border-red-500" :
                                                     formData.confirmPassword.length > 0 && isPasswordMatch ? "border-green-500 focus:border-green-500" : ""
                                             )}
