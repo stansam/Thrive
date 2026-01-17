@@ -117,9 +117,11 @@ export interface TravelerDocument {
     holder: boolean;
 }
 
+export type TravelerType = 'ADULT' | 'CHILD' | 'INFANT';
+
 export interface TravelerInfo {
     id?: string;
-    travelerType: 'ADULT' | 'CHILD' | 'INFANT';
+    travelerType: TravelerType;
     title?: string;
     firstName: string;
     lastName: string;

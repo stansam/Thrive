@@ -28,6 +28,10 @@ export const flightService = {
         return apiClient.post<any, BookingResponse>('/flights/book', bookingRequest);
     },
 
+    getSeatMap: (flightOffer: FlightOffer) => {
+        return apiClient.post<any, { success: boolean; data: any[] }>('/flights/seatmap', { flightOffer });
+    },
+
     confirmBooking: (bookingId: string, paymentIntentId: string) => {
         return apiClient.post<any, ConfirmBookingResponse>('/flights/book/confirm', {
             bookingId,
