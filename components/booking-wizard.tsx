@@ -257,6 +257,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                         flightOffer={flightOffer}
                         travelers={travelers}
                         onSeatsSelected={handleSeatSelection}
+                        onSkip={() => setCurrentStep('travelers')}
                     />
                     <div className="flex justify-between">
                         <Button variant="outline" onClick={() => setCurrentStep('review')} className="border-neutral-700 text-neutral-300">

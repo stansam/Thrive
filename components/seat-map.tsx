@@ -14,6 +14,7 @@ interface SeatMapProps {
     flightOffer: FlightOffer;
     travelers: any[];
     onSeatsSelected: (selections: { [travelerId: string]: string }) => void;
+    onSkip?: () => void;
 }
 
 interface Seat {
@@ -33,7 +34,7 @@ interface Deck {
     warnings?: any[]; // Exit row warnings etc
 }
 
-export function SeatMap({ flightOffer, travelers, onSeatsSelected }: SeatMapProps) {
+export function SeatMap({ flightOffer, travelers, onSeatsSelected, onSkip }: SeatMapProps) {
     const [loading, setLoading] = useState(true);
     const [seatMaps, setSeatMaps] = useState<any[]>([]);
     const [error, setError] = useState<string | null>(null);
@@ -124,7 +125,42 @@ export function SeatMap({ flightOffer, travelers, onSeatsSelected }: SeatMapProp
     // Auto-advance traveler logic could go here
 
     if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin h-8 w-8 text-sky-500" /></div>;
-    if (error || !seatMaps.length) return <div className="text-red-400 p-4 text-center">Seat map unavailable for this flight. You can request seat preferences later.</div>;
+    if (loading) return <div className="flex justify-center p-8"><Loader2 className="animate-spin h-8 w-8 text-sky-500" /></div>;
+
+    // EDGE CASE: If error or no seat map data, allow user to skip
+    if (error || !seatMaps.length) {
+        return (
+            <Card className="bg-neutral-900 border-neutral-800 text-white">
+                <CardHeader>
+                    <CardTitle className="text-amber-500 flex items-center gap-2">
+                        <Armchair className="h-5 w-5" />
+                        Seat Selection Unavailable
+                    </CardTitle>
+                    <CardDescription className="text-neutral-400">
+                        We couldn't retrieve the seat map for this flight. This happens occasionally with certain airlines or last-minute bookings.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-sm text-neutral-300">
+                        Don't worry! You can still proceed with your booking request.
+                        Our team will secure the best available seats for you, or you can request specific preferences (Window/Aisle) in the next steps.
+                    </p>
+                    <div className="flex justify-end pt-4">
+                        {/* If parent doesn't provide onSkip, we can't do much but show message. 
+                             However, based on BookingWizard logic, we might need a button here 
+                             Use a placeholder button if handler not provided? */}
+                        {onSkip ? (
+                            <Button onClick={onSkip} className="bg-sky-600 hover:bg-sky-700 text-white">
+                                Continue without Seats
+                            </Button>
+                        ) : (
+                            <div className="text-xs text-neutral-500">Please go back or contact support if this persists.</div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
 
     // Helper to render grid
     // Amadeus SeatMap response structure is complex (decks, wings, etc).
