@@ -11,20 +11,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plane, Calendar, Search, AlertCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import Link from 'next/link';
-import FlightDetailsView from '../views/FlightDetailsView';
+
 
 export default function FlightsTab() {
     const [filters, setFilters] = useState({
         status: 'all',
         search: ''
     });
-    const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
     const { flights, summary, isLoading, isError } = useFlights(filters);
-
-    if (selectedBookingId) {
-        return <FlightDetailsView bookingId={selectedBookingId} onBack={() => setSelectedBookingId(null)} />;
-    }
 
     if (isError) {
         return <div className="text-red-500">Error loading flights.</div>;
@@ -171,11 +166,10 @@ export default function FlightsTab() {
                                     </div>
                                 </div>
                                 <div className="bg-muted/30 p-4 flex flex-row md:flex-col justify-center items-center gap-2 border-t md:border-t-0 md:border-l">
-                                    <Button variant="default" size="sm" className="w-full" onClick={() => setSelectedBookingId(flight.id)}>
-                                        View Details
-                                    </Button>
-                                    <Button variant="outline" size="sm" className="w-full" onClick={() => setSelectedBookingId(flight.id)}>
-                                        Manage
+                                    <Button variant="outline" size="sm" className="w-full" asChild>
+                                        <Link href={`/dashboard/flights/${flight.booking_reference}`}>
+                                            Manage
+                                        </Link>
                                     </Button>
                                 </div>
                             </div>
