@@ -131,7 +131,7 @@ export default function FlightsTab() {
                                             <div>
                                                 <h3 className="font-semibold text-lg">{flight.origin} → {flight.destination}</h3>
                                                 <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                                    <span>{flight.airline?.name}</span>
+                                                    <span>{flight.airline}</span>
                                                     <span>•</span>
                                                     <span>{flight.flight_number}</span>
                                                 </div>
@@ -174,7 +174,7 @@ export default function FlightsTab() {
                                     <Button variant="default" size="sm" className="w-full" onClick={() => setSelectedBookingId(flight.id)}>
                                         View Details
                                     </Button>
-                                    <Button variant="outline" size="sm" className="w-full">
+                                    <Button variant="outline" size="sm" className="w-full" onClick={() => setSelectedBookingId(flight.id)}>
                                         Manage
                                     </Button>
                                 </div>

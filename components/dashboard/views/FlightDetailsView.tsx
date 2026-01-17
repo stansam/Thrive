@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Plane, FileText, CreditCard, MessageSquare, Download, AlertTriangle } from 'lucide-react';
 
+import { BookingTimeline } from '../booking-timeline';
+import { BookingUpdates } from '../booking-updates';
+
 export default function FlightDetailsView({ bookingId, onBack }: { bookingId: string, onBack: () => void }) {
     const { booking, isLoading, isError } = useFlightDetails(bookingId);
 
@@ -17,19 +20,25 @@ export default function FlightDetailsView({ bookingId, onBack }: { bookingId: st
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={onBack}>
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                    <h2 className="text-2xl font-bold flex items-center gap-2">
-                        Booking {booking.pnr || booking.booking_reference}
-                        <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'}>
-                            {booking.status}
-                        </Badge>
-                    </h2>
-                    <p className="text-muted-foreground">Managed by Thrive Concierge</p>
+            <div className="space-y-2">
+                <div className="flex items-center gap-4">
+                    <Button variant="ghost" size="icon" onClick={onBack}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <div>
+                        <h2 className="text-2xl font-bold flex items-center gap-2">
+                            Booking {booking.pnr || booking.booking_reference}
+                            <Badge variant={booking.status === 'confirmed' ? 'default' : 'secondary'} className="capitalize">
+                                {booking.status}
+                            </Badge>
+                        </h2>
+                        <p className="text-muted-foreground">Managed by Thrive Concierge</p>
+                    </div>
                 </div>
+                {/* Horizontal Timeline */}
+                {booking.timeline && (
+                    <BookingTimeline status={booking.status} timeline={booking.timeline} />
+                )}
             </div>
 
             <Tabs defaultValue="details" className="w-full">
@@ -106,8 +115,8 @@ export default function FlightDetailsView({ bookingId, onBack }: { bookingId: st
                                 </div>
                             </div>
                             <div className="mt-6 flex gap-4">
-                                <Button className="flex-1">Download Invoice</Button>
-                                <Button variant="outline" className="flex-1">Download Receipt</Button>
+                                <Button className="flex-1" disabled={!booking.documents?.invoiceUrl}>Download Invoice</Button>
+                                <Button variant="outline" className="flex-1" disabled={!booking.documents?.ticketUrl}>Download E-Ticket</Button>
                             </div>
                         </CardContent>
                     </Card>
@@ -137,18 +146,10 @@ export default function FlightDetailsView({ bookingId, onBack }: { bookingId: st
                     </Card>
                     <Card>
                         <CardHeader>
-                            <CardTitle>Tracking Logs</CardTitle>
+                            <CardTitle>Updates & Notifications</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                <div className="flex gap-4">
-                                    <div className="mt-1 bg-primary h-2 w-2 rounded-full" />
-                                    <div>
-                                        <div className="font-medium">Booking Confirmed</div>
-                                        <div className="text-sm text-muted-foreground">{new Date(booking.created_at).toLocaleDateString()}</div>
-                                    </div>
-                                </div>
-                            </div>
+                            <BookingUpdates updates={booking.updates || []} />
                         </CardContent>
                     </Card>
                 </TabsContent>

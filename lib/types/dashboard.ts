@@ -143,6 +143,25 @@ export interface Booking {
     package?: PackageInfo;
     createdAt: string;
     updatedAt: string;
+    timeline?: {
+        requestedAt?: string;
+        reviewedAt?: string;
+        invoicedAt?: string;
+        paidAt?: string;
+        ticketedAt?: string;
+    };
+    updates?: {
+        id: string;
+        type: string;
+        title: string;
+        message: string;
+        is_read: boolean;
+        created_at: string;
+    }[];
+    documents?: {
+        invoiceUrl?: string;
+        ticketUrl?: string;
+    };
 }
 
 export interface BookingFilters {
