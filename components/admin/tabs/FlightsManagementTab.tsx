@@ -9,6 +9,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -249,8 +250,10 @@ export default function FlightsManagementTab() {
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                    <DropdownMenuItem onClick={() => setSelectedBookingId(booking.id)}>
-                                                        <Eye className="mr-2 h-4 w-4" /> View Details
+                                                    <DropdownMenuItem asChild>
+                                                        <Link href={`/admin/flight/${booking.booking_reference}`} className="flex items-center cursor-pointer">
+                                                            <Eye className="mr-2 h-4 w-4" /> Manage Booking
+                                                        </Link>
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => openEditModal(booking)}>
                                                         <Edit className="mr-2 h-4 w-4" /> Update Status

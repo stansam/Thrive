@@ -63,7 +63,7 @@ import PackagesManagementTab from "@/components/admin/tabs/PackagesManagementTab
 import PaymentsManagementTab from "@/components/admin/tabs/PaymentsManagementTab";
 import ContactMessagesTab from "@/components/admin/tabs/ContactMessagesTab";
 
-export default function AdminDashboardLayout() {
+export default function AdminDashboardLayout({ children }: { children?: React.ReactNode }) {
     const [activeTab, setActiveTab] = useState("dashboard");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const router = useRouter();
@@ -416,7 +416,7 @@ export default function AdminDashboardLayout() {
 
                 {/* Content */}
                 <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-                    {renderContent()}
+                    {children || renderContent()}
                 </main>
             </div>
         </div>
