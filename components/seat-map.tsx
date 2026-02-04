@@ -415,8 +415,8 @@ function DesktopSeatMap({ deck, selectedSeats, currentSegmentIdx, currentTravele
     const { rows: xIndices, columns: yIndices, grid, rowMap, seatRowMap, config } = useMemo(() => processDeckData(deck), [deck]);
     
     return (
-        // <ScrollArea className="w-full h-[500px]">
-        <div className="w-inherit h-[500px] p-8 flex justify-center min-w-[800px]">
+        <div className="w-full overflow-x-auto pb-6">
+            <div className="p-8 flex justify-center min-w-max">
             <div className="bg-neutral-900/30 p-8 rounded-[40px] border border-neutral-800/50 relative">
                 
                 {/* Cockpit / Front Indicator */}
@@ -521,8 +521,8 @@ function DesktopSeatMap({ deck, selectedSeats, currentSegmentIdx, currentTravele
                      </div>
                 </div>
             </div>
+            </div>
         </div>
-        // </ScrollArea>
     );
 }
 

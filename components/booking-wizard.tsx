@@ -176,7 +176,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
     const currentStepIdx = steps.findIndex(s => s.id === currentStep);
 
     return (
-        <div className="max-w-7xl mx-auto p-3 md:p-4 space-y-6">
+        <div className="max-w-8xl mx-auto p-3 md:p-4 space-y-6">
 
             {/* Progress Bar */}
             <div className="w-full bg-neutral-900/50 rounded-full h-2 mb-8 relative overflow-hidden">
@@ -260,7 +260,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                         onSkip={() => setCurrentStep('travelers')}
                     />
                     <div className="flex justify-between">
-                        <Button variant="outline" onClick={() => setCurrentStep('review')} className="border-neutral-700 text-neutral-300">
+                        <Button variant="outline" onClick={() => setCurrentStep('review')} className="text-black hover:bg-neutral-200 border-neutral-700">
                             Back
                         </Button>
                         <Button onClick={() => setCurrentStep('travelers')} className="bg-white text-black hover:bg-neutral-200 min-w-[150px]">
@@ -356,7 +356,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                         </Card>
                     ))}
                     <div className="flex justify-between pt-4">
-                        <Button variant="outline" onClick={() => setCurrentStep('seats')} className="border-neutral-700 text-neutral-300">
+                        <Button variant="outline" onClick={() => setCurrentStep('seats')} className="text-black hover:bg-neutral-200 border-neutral-700">
                             Back
                         </Button>
                         <Button onClick={() => setCurrentStep('summary')} className="bg-white text-black hover:bg-neutral-200 min-w-[150px]">
@@ -449,7 +449,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                             </Alert>
                         </CardContent>
                         <CardFooter className="flex justify-between pt-4 border-t border-neutral-800">
-                            <Button variant="outline" onClick={() => setCurrentStep('travelers')} className="border-neutral-700 text-neutral-300">
+                            <Button variant="outline" onClick={() => setCurrentStep('travelers')} className="border-neutral-700 text-black hover:bg-neutral-200">
                                 Back
                             </Button>
                             <Button
@@ -507,7 +507,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
                         <Button onClick={() => router.push('/dashboard')} className="bg-white text-black hover:bg-neutral-200">
                             Go to Dashboard
                         </Button>
-                        <Button variant="outline" onClick={() => router.push('/')} className="border-neutral-700 text-neutral-300">
+                        <Button variant="outline" onClick={() => router.push('/')} className="border-neutral-700 text-black hover:bg-neutral-200">
                             Back Home
                         </Button>
                     </div>
