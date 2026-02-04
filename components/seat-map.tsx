@@ -222,13 +222,13 @@ export function SeatMap({ flightOffer, travelers, onSeatsSelected, onSkip }: Sea
                     ))}
                 </div>
 
-                <ScrollArea className="h-[400px] w-full rounded-md border border-neutral-800 bg-neutral-950/50 p-4">
+                {/* <ScrollArea className="h-[400px] w-full rounded-md border border-neutral-800 bg-neutral-950/50 p-4"> */}
                     <div className="flex flex-col items-center gap-2 relative">
                         {/* Simple Grid Renderer based on "number" (Row/Letter) or coordinates if valid */}
                         {/* Fallback to simple list if coordinates missing */}
                         {renderDeck(currentSeatMap?.decks?.[0], selectedSeats, currentSegmentIdx, currentTravelerIdx, handleSeatClick)}
                     </div>
-                </ScrollArea>
+                {/* </ScrollArea> */}
 
                 <div className="mt-4 flex gap-4 text-xs text-neutral-400 justify-center">
                     <div className="flex items-center gap-1"><div className="w-4 h-4 bg-neutral-800 border border-neutral-600 rounded" /> Available</div>

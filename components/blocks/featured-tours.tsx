@@ -1,9 +1,7 @@
-"use client";
-
-
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -18,58 +16,7 @@ import { Package } from "@/lib/types/package";
 import { AlertCircle } from "lucide-react";
 import { WishlistButton } from "@/components/blocks/wishlist-button";
 import { useMyPackages } from "@/lib/hooks/use-packages-api";
-
-// Fallback data if API returns empty or fails
-const FALLBACK_PACKAGES: Partial<Package>[] = [
-    {
-        id: "dubai-luxury",
-        name: "Dubai Luxury Escape",
-        duration_days: 5,
-        duration_nights: 4,
-        starting_price: 1899,
-        highlights: ["Yacht Cruise", "Desert Safari", "Burj Khalifa"],
-        inclusions: ["Hotel", "Breakfast daily", "Airport transfers", "Tours & activities", "Professional guide"],
-        exclusions: ["Flights (can be added)", "Travel insurance"],
-        featured_image: "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=1080&auto=format&fit=crop",
-        slug: "dubai-luxury-escape"
-    },
-    {
-        id: "japan-cherry-blossom",
-        name: "Japan Cherry Blossom",
-        duration_days: 10,
-        duration_nights: 9,
-        starting_price: 3499,
-        highlights: ["Tokyo", "Kyoto", "Mt. Fuji", "Osaka"],
-        inclusions: ["4-Star Hotels", "Bullet Train Pass", "Guided Tours", "Breakfast daily", "Cultural ceremonies"],
-        exclusions: ["International Flights", "Personal expenses"],
-        featured_image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1080&auto=format&fit=crop",
-        slug: "japan-cherry-blossom"
-    },
-    {
-        id: "amalfi-coast",
-        name: "Amalfi Coast Dream",
-        duration_days: 7,
-        duration_nights: 6,
-        starting_price: 2299,
-        highlights: ["Positano", "Capri Boat Tour", "Pompeii"],
-        inclusions: ["Boutique Hotels", "Private Transfers", "Boat Tours", "Wine Tasting", "Breakfast daily"],
-        exclusions: ["Flights", "City Taxes"],
-        featured_image: "https://images.unsplash.com/photo-1533105079780-92b9be482077?q=80&w=1080&auto=format&fit=crop",
-        slug: "amalfi-coast-dream"
-    },
-    {
-        id: "bali-wellness",
-        name: "Bali Wellness Retreat",
-        duration_days: 8,
-        duration_nights: 7,
-        starting_price: 1499,
-        highlights: ["Ubud Yoga", "Nusa Penida", "Rice Terraces"],
-        inclusions: ["Villa Accommodation", "Daily Spa Treatment", "Meals", "Airport Transfers", "Yoga Classes"],
-        exclusions: ["Flights", "Alcoholic beverages"],
-        featured_image: "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1080&auto=format&fit=crop",
-        slug: "bali-wellness-retreat"
-    }
-];
+import { FALLBACK_PACKAGES } from "@/lib/constants";
 
 
 export function FeaturedTours() {
@@ -237,10 +184,12 @@ export function FeaturedTours() {
                                     >
                                         <div className="group relative h-full flex flex-col overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900/50">
                                             <div className="relative aspect-[4/3] w-full overflow-hidden">
-                                                <img
+                                                <Image
                                                     src={item.featured_image || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1080&auto=format&fit=crop"}
                                                     alt={item.name}
-                                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                    fill
+                                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                                 />
                                                 <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-neutral-900 to-transparent pointer-events-none" />
                                                 <div className="absolute top-4 left-4">

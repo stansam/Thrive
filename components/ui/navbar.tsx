@@ -180,17 +180,7 @@ export default function Navbar() {
 
                     {/* Right Side Actions */}
                     <div className="flex items-center gap-4">
-                        {/* Auth Toggle (Demo purpose) */}
-                        {/* <div className="hidden lg:flex items-center space-x-2 mr-4 bg-white/5 px-3 py-1 rounded-full border border-white/5">
-                            <Switch
-                                id="auth-mode"
-                                checked={isLoggedIn}
-                                onCheckedChange={setIsLoggedIn}
-                            />
-                            <Label htmlFor="auth-mode" className="text-xs text-white/60 cursor-pointer">
-                                {isLoggedIn ? 'User Mode' : 'Guest Mode'}
-                            </Label>
-                        </div> */}
+
 
                         {isAuthenticated ? (
                             <>
@@ -256,11 +246,13 @@ export default function Navbar() {
                                             </div>
                                         </DropdownMenuLabel>
                                         <DropdownMenuSeparator className="bg-white/10" />
-                                        <DropdownMenuItem className="focus:bg-white/5 cursor-pointer">
+                                        <DropdownMenuItem className="focus:bg-white/5 focus:text-white cursor-pointer">
                                             <User className="mr-2 h-4 w-4" />
-                                            <span>Profile</span>
+                                            <Link href="/dashboard">
+                                                <span>Dashboard</span>
+                                            </Link>
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="focus:bg-white/5 cursor-pointer">
+                                        <DropdownMenuItem className="focus:bg-white/5 focus:text-white cursor-pointer">
                                             <Settings className="mr-2 h-4 w-4" />
                                             <span>Settings</span>
                                         </DropdownMenuItem>
@@ -270,7 +262,7 @@ export default function Navbar() {
                                                 e.preventDefault();
                                                 logout();
                                             }}
-                                            className="focus:bg-white/5 cursor-pointer text-red-400 focus:text-red-400">
+                                            className="focus:bg-white/5 focus:text-white cursor-pointer text-red-400 focus:text-red-400">
                                             <LogOut className="mr-2 h-4 w-4" />
                                             <span>Log out</span>
                                         </DropdownMenuItem>
