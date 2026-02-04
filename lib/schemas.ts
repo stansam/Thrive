@@ -5,7 +5,7 @@ export const bookFlightSchema = z.object({
   from: z.string().min(2, "Origin is required"),
   to: z.string().min(2, "Destination is required"),
   departureDate: z.date({
-    required_error: "Departure date is required",
+    message: "Departure date is required",
   }),
   returnDate: z.date().optional(),
   adults: z.number().min(1).max(9),

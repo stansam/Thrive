@@ -186,7 +186,7 @@ export function FeaturedTours() {
                                             <div className="relative aspect-[4/3] w-full overflow-hidden">
                                                 <Image
                                                     src={item.featured_image || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1080&auto=format&fit=crop"}
-                                                    alt={item.name}
+                                                    alt={item.name || "Tour Package"}
                                                     fill
                                                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

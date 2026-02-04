@@ -176,7 +176,7 @@ export function BookingWizard({ flightOffer, user, dictionaries }: BookingWizard
     const currentStepIdx = steps.findIndex(s => s.id === currentStep);
 
     return (
-        <div className="max-w-5xl mx-auto p-3 md:p-4 space-y-6">
+        <div className="max-w-7xl mx-auto p-3 md:p-4 space-y-6">
 
             {/* Progress Bar */}
             <div className="w-full bg-neutral-900/50 rounded-full h-2 mb-8 relative overflow-hidden">
