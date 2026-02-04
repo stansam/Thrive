@@ -9,13 +9,14 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { usePackages, useCreatePackage, useUpdatePackage } from "@/lib/hooks/use-admin-api";
-import { Eye, Edit, Plus, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Eye, Edit, Plus, ChevronLeft, ChevronRight, MoreHorizontal, MapPin, Calendar, DollarSign, Hotel } from "lucide-react";
 import type { AdminPackage } from "@/lib/types/admin.d.ts";
 import {
     Dialog,
@@ -26,25 +27,26 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+
+// Helper to convert array to newline-separated string
+const arrayToText = (arr?: string[]) => (arr ? arr.join("\n") : "");
+// Helper to convert newline-separated string to array
+const textToArray = (text: string) => text.split("\n").filter((line) => line.trim() !== "");
 
 export default function PackagesManagementTab() {
     const [page, setPage] = useState(1);
@@ -56,26 +58,41 @@ export default function PackagesManagementTab() {
     const [formData, setFormData] = useState<any>({});
 
     const { toast } = useToast();
-
     const { packages, pagination, isLoading, refresh } = usePackages({ page, search });
 
     const [selectedPackage, setSelectedPackage] = useState<AdminPackage | null>(null);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [editingPackage, setEditingPackage] = useState<AdminPackage | null>(null);
 
     const { createPackage, isLoading: isCreatingPackage } = useCreatePackage();
     const { updatePackage, isLoading: isUpdatingPackage } = useUpdatePackage();
 
     const handleSavePackage = async () => {
         try {
+            // Prepare payload
+            const payload = {
+                ...formData,
+                duration_days: parseInt(formData.duration_days) || 0,
+                duration_nights: parseInt(formData.duration_nights) || 0,
+                starting_price: parseFloat(formData.starting_price) || 0,
+                price_per_person: parseFloat(formData.price_per_person) || 0,
+                hotel_rating: parseInt(formData.hotel_rating) || 3,
+                highlights: textToArray(formData.highlightsStr || ""),
+                inclusions: textToArray(formData.inclusionsStr || ""),
+                exclusions: textToArray(formData.exclusionsStr || ""),
+            };
+
+            // Cleanup temp fields
+            delete payload.highlightsStr;
+            delete payload.inclusionsStr;
+            delete payload.exclusionsStr;
+
             if (isCreating) {
-                await createPackage(formData);
+                await createPackage(payload);
                 toast({
                     title: "Package Created",
                     description: "New travel package has been successfully created.",
                 });
             } else if (editingPackageId) {
-                await updatePackage(editingPackageId, formData);
+                await updatePackage(editingPackageId, payload);
                 toast({
                     title: "Package Updated",
                     description: "Travel package details have been updated.",
@@ -90,7 +107,7 @@ export default function PackagesManagementTab() {
             toast({
                 variant: "destructive",
                 title: "Operation Failed",
-                description: `Failed to ${isCreating ? 'create' : 'update'} package. Please try again.`,
+                description: `Failed to ${isCreating ? "create" : "update"} package. Please try again.`,
             });
         }
     };
@@ -102,14 +119,11 @@ export default function PackagesManagementTab() {
 
     const openEditModal = (pkg: AdminPackage) => {
         setEditingPackageId(pkg.id);
-        setEditingPackage(pkg);
         setFormData({
-            name: pkg.name,
-            destinationCity: pkg.destination.split(",")[0],
-            destinationCountry: pkg.destination.split(",")[1]?.trim() || "",
-            duration: pkg.duration,
-            startingPrice: pkg.starting_price,
-            is_active: pkg.is_active,
+            ...pkg,
+            highlightsStr: arrayToText(pkg.highlights),
+            inclusionsStr: arrayToText(pkg.inclusions),
+            exclusionsStr: arrayToText(pkg.exclusions),
         });
     };
 
@@ -117,15 +131,224 @@ export default function PackagesManagementTab() {
         setIsCreating(true);
         setFormData({
             name: "",
-            destinationCity: "",
-            destinationCountry: "",
-            durationDays: 3,
-            durationNights: 2,
-            startingPrice: 0,
-            pricePerPerson: 0,
-            description: "",
+            destination_city: "",
+            destination_country: "",
+            duration_days: 3,
+            duration_nights: 2,
+            starting_price: 0,
+            price_per_person: 0,
+            description: "", // full_description
+            short_description: "",
+            hotel_name: "",
+            hotel_rating: 3,
+            is_active: true,
+            is_featured: false,
+            highlightsStr: "",
+            inclusionsStr: "",
+            exclusionsStr: "",
         });
     };
+
+    // Shared Form Content for Create/Edit
+    const PackageFormContent = () => (
+        <Tabs defaultValue="general" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="general">General</TabsTrigger>
+                <TabsTrigger value="pricing">Pricing</TabsTrigger>
+                <TabsTrigger value="details">Details</TabsTrigger>
+                <TabsTrigger value="meta">Meta & Hotel</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="general" className="space-y-4 py-4">
+                <div className="grid gap-2">
+                    <Label htmlFor="pkg-name">Package Name</Label>
+                    <Input
+                        id="pkg-name"
+                        value={formData.name || ""}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="e.g. Magic of Paris"
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label>City</Label>
+                        <Input
+                            value={formData.destination_city || ""}
+                            onChange={(e) => setFormData({ ...formData, destination_city: e.target.value })}
+                            placeholder="Paris"
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Country</Label>
+                        <Input
+                            value={formData.destination_country || ""}
+                            onChange={(e) => setFormData({ ...formData, destination_country: e.target.value })}
+                            placeholder="France"
+                        />
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label>Days</Label>
+                        <Input
+                            type="number"
+                            min="1"
+                            value={formData.duration_days || ""}
+                            onChange={(e) => setFormData({ ...formData, duration_days: e.target.value })}
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Nights</Label>
+                        <Input
+                            type="number"
+                            min="0"
+                            value={formData.duration_nights || ""}
+                            onChange={(e) => setFormData({ ...formData, duration_nights: e.target.value })}
+                        />
+                    </div>
+                </div>
+                <div className="grid gap-2">
+                    <Label>Short Description</Label>
+                    <Textarea
+                        value={formData.short_description || ""}
+                        onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+                        rows={2}
+                    />
+                </div>
+                <div className="flex items-center space-x-2 pt-2">
+                    <Switch
+                        id="is-active"
+                        checked={formData.is_active}
+                        onCheckedChange={(val) => setFormData({ ...formData, is_active: val })}
+                    />
+                    <Label htmlFor="is-active">Active (Visible to users)</Label>
+                </div>
+            </TabsContent>
+
+            <TabsContent value="pricing" className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label>Starting Price ($)</Label>
+                        <Input
+                            type="number"
+                            step="0.01"
+                            value={formData.starting_price || ""}
+                            onChange={(e) => setFormData({ ...formData, starting_price: e.target.value })}
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Price Per Person ($)</Label>
+                        <Input
+                            type="number"
+                            step="0.01"
+                            value={formData.price_per_person || ""}
+                            onChange={(e) => setFormData({ ...formData, price_per_person: e.target.value })}
+                        />
+                    </div>
+                </div>
+                <div className="flex items-center space-x-2 pt-4">
+                    <Switch
+                        id="is-featured"
+                        checked={formData.is_featured}
+                        onCheckedChange={(val) => setFormData({ ...formData, is_featured: val })}
+                    />
+                    <Label htmlFor="is-featured">Featured Package (Promoted on homepage)</Label>
+                </div>
+            </TabsContent>
+
+            <TabsContent value="details" className="space-y-4 py-4">
+                <div className="grid gap-2">
+                    <Label>Full Description</Label>
+                    <Textarea
+                        value={formData.full_description || (isCreating ? formData.description : "") || ""}
+                        onChange={(e) => setFormData({ ...formData, full_description: e.target.value })}
+                        rows={4}
+                    />
+                </div>
+                <div className="grid gap-2">
+                    <Label>Highlights (one per line)</Label>
+                    <Textarea
+                        value={formData.highlightsStr || ""}
+                        onChange={(e) => setFormData({ ...formData, highlightsStr: e.target.value })}
+                        placeholder="e.g. Eiffel Tower Visit\nSeine River Cruise"
+                        rows={4}
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label>Inclusions (one per line)</Label>
+                        <Textarea
+                            value={formData.inclusionsStr || ""}
+                            onChange={(e) => setFormData({ ...formData, inclusionsStr: e.target.value })}
+                            rows={4}
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Exclusions (one per line)</Label>
+                        <Textarea
+                            value={formData.exclusionsStr || ""}
+                            onChange={(e) => setFormData({ ...formData, exclusionsStr: e.target.value })}
+                            rows={4}
+                        />
+                    </div>
+                </div>
+            </TabsContent>
+
+            <TabsContent value="meta" className="space-y-4 py-4">
+                <div className="grid gap-2">
+                    <Label>Hotel Name</Label>
+                    <Input
+                        value={formData.hotel_name || ""}
+                        onChange={(e) => setFormData({ ...formData, hotel_name: e.target.value })}
+                    />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                        <Label>Hotel Rating (1-5)</Label>
+                        <Input
+                            type="number"
+                            min="1"
+                            max="5"
+                            value={formData.hotel_rating || ""}
+                            onChange={(e) => setFormData({ ...formData, hotel_rating: e.target.value })}
+                        />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label>Room Type</Label>
+                        <Input
+                            value={formData.room_type || ""}
+                            onChange={(e) => setFormData({ ...formData, room_type: e.target.value })}
+                        />
+                    </div>
+                </div>
+                <div className="grid gap-2">
+                    <Label>Meta Title (SEO)</Label>
+                    <Input
+                        value={formData.meta_title || ""}
+                        onChange={(e) => setFormData({ ...formData, meta_title: e.target.value })}
+                    />
+                </div>
+                <div className="grid gap-2">
+                    <Label>Meta Description (SEO)</Label>
+                    <Textarea
+                        value={formData.meta_description || ""}
+                        onChange={(e) => setFormData({ ...formData, meta_description: e.target.value })}
+                        rows={2}
+                    />
+                </div>
+                <div className="grid gap-2">
+                    <Label>Featured Image URL</Label>
+                    <Input
+                        value={formData.featured_image || ""}
+                        onChange={(e) => setFormData({ ...formData, featured_image: e.target.value })}
+                    />
+                </div>
+            </TabsContent>
+        </Tabs>
+    );
+
+    // Hooks for toast
+    // already imported
 
     return (
         <div className="space-y-4">
@@ -143,8 +366,52 @@ export default function PackagesManagementTab() {
                 </Button>
             </div>
 
-            {/* Packages Table Card */}
-            <Card>
+            {/* Mobile Card View (Visible only on small screens) */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+                {isLoading ? (
+                    Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-lg" />)
+                ) : packages?.length === 0 ? (
+                    <div className="text-center p-8 text-muted-foreground bg-muted/20 rounded-lg">No packages found.</div>
+                ) : (
+                    packages?.map((pkg: AdminPackage) => (
+                        <Card key={pkg.id} className="overflow-hidden">
+                            <CardHeader className="pb-2">
+                                <div className="flex justify-between items-start">
+                                    <Badge variant={pkg.is_active ? "default" : "secondary"}>{pkg.is_active ? "Active" : "Inactive"}</Badge>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => openViewModal(pkg)}>View Details</DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => openEditModal(pkg)}>Edit Package</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                <CardTitle className="text-lg">{pkg.name}</CardTitle>
+                                <CardDescription className="flex items-center mt-1">
+                                    <MapPin className="w-3 h-3 mr-1" /> {pkg.destination_city}, {pkg.destination_country}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pb-2 text-sm space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground flex items-center"><Calendar className="w-3 h-3 mr-1" /> Duration:</span>
+                                    <span>{pkg.duration_days}D / {pkg.duration_nights}N</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-muted-foreground flex items-center"><DollarSign className="w-3 h-3 mr-1" /> Starting:</span>
+                                    <span className="font-semibold">${pkg.starting_price.toFixed(2)}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
+            </div>
+
+            {/* Desktop Table View (Hidden on small screens) */}
+            <Card className="hidden md:block">
                 <CardHeader className="px-6 py-4 border-b">
                     <CardTitle>Travel Packages</CardTitle>
                     <CardDescription>
@@ -186,12 +453,13 @@ export default function PackagesManagementTab() {
                                     <TableRow key={pkg.id}>
                                         <TableCell className="font-medium">
                                             {pkg.name}
+                                            {pkg.is_featured && <Badge variant="outline" className="ml-2 text-xs">Featured</Badge>}
                                         </TableCell>
                                         <TableCell>
-                                            {pkg.destination}
+                                            {pkg.destination_city}, {pkg.destination_country}
                                         </TableCell>
                                         <TableCell>
-                                            {pkg.duration}
+                                            {pkg.duration_days} Days, {pkg.duration_nights} Nights
                                         </TableCell>
                                         <TableCell className="text-right font-medium">
                                             ${pkg.starting_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -257,38 +525,75 @@ export default function PackagesManagementTab() {
 
             {/* View Package Dialog */}
             <Dialog open={!!selectedPackageId} onOpenChange={() => setSelectedPackageId(null)}>
-                <DialogContent className="max-w-md">
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Package Details</DialogTitle>
                         <DialogDescription>{selectedPackage?.name}</DialogDescription>
                     </DialogHeader>
                     {selectedPackage && (
-                        <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 bg-muted/30 p-4 rounded-lg">
                                 <div>
-                                    <Label className="text-muted-foreground">Destination</Label>
-                                    <p className="font-medium">{selectedPackage.destination}</p>
+                                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Destination</Label>
+                                    <p className="font-medium">{selectedPackage.destination_city}, {selectedPackage.destination_country}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-muted-foreground">Duration</Label>
-                                    <p className="font-medium">{selectedPackage.duration}</p>
+                                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Duration</Label>
+                                    <p className="font-medium">{selectedPackage.duration_days}D / {selectedPackage.duration_nights}N</p>
                                 </div>
                                 <div>
-                                    <Label className="text-muted-foreground">Starting Price</Label>
-                                    <p className="font-medium text-lg">${selectedPackage.starting_price.toFixed(2)}</p>
+                                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Starting Price</Label>
+                                    <p className="font-medium text-lg text-primary">${selectedPackage.starting_price.toFixed(2)}</p>
                                 </div>
                                 <div>
-                                    <Label className="text-muted-foreground">Status</Label>
-                                    <div>
+                                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Status</Label>
+                                    <div className="mt-1">
                                         <Badge variant={selectedPackage.is_active ? "default" : "secondary"}>
                                             {selectedPackage.is_active ? "Active" : "Inactive"}
                                         </Badge>
                                     </div>
                                 </div>
                             </div>
-                            <div className="pt-2">
-                                <Label className="text-muted-foreground">Description</Label>
-                                <p className="text-sm mt-1">{selectedPackage.description || "No description provided."}</p>
+
+                            <div className="space-y-2">
+                                <Label className="font-semibold">Description</Label>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                    {selectedPackage.full_description || selectedPackage.description || "No description provided."}
+                                </p>
+                            </div>
+
+                            {selectedPackage.hotel_name && (
+                                <div className="space-y-2">
+                                    <Label className="font-semibold flex items-center"><Hotel className="w-4 h-4 mr-2" /> Accommodation</Label>
+                                    <div className="bg-card border p-3 rounded text-sm">
+                                        <span className="font-medium">{selectedPackage.hotel_name}</span>
+                                        {selectedPackage.hotel_rating && <Badge variant="outline" className="ml-2">{selectedPackage.hotel_rating} Stars</Badge>}
+                                        {selectedPackage.room_type && <span className="text-muted-foreground ml-2">• {selectedPackage.room_type}</span>}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="grid md:grid-cols-2 gap-6">
+                                {selectedPackage.highlights && selectedPackage.highlights.length > 0 && (
+                                    <div>
+                                        <Label className="font-semibold block mb-2">Highlights</Label>
+                                        <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                            {selectedPackage.highlights.map((h, i) => (
+                                                <li key={i}>{h}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {selectedPackage.inclusions && selectedPackage.inclusions.length > 0 && (
+                                    <div>
+                                        <Label className="font-semibold block mb-2">Inclusions</Label>
+                                        <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                                            {selectedPackage.inclusions.map((inc, i) => (
+                                                <li key={i}>{inc}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -296,100 +601,14 @@ export default function PackagesManagementTab() {
             </Dialog>
 
             {/* Create Package Dialog */}
-            <Dialog open={isCreating} onOpenChange={() => setIsCreating(false)}>
-                <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+            <Dialog open={isCreating} onOpenChange={setIsCreating}>
+                <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Create New Package</DialogTitle>
                         <DialogDescription>Add a new travel package to the system</DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-2">
-                        <div>
-                            <Label>Package Name *</Label>
-                            <Input
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="e.g., Paris Adventure"
-                                className="mt-1"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Destination City *</Label>
-                                <Input
-                                    value={formData.destinationCity}
-                                    onChange={(e) => setFormData({ ...formData, destinationCity: e.target.value })}
-                                    placeholder="Paris"
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Country *</Label>
-                                <Input
-                                    value={formData.destinationCountry}
-                                    onChange={(e) => setFormData({ ...formData, destinationCountry: e.target.value })}
-                                    placeholder="France"
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Duration (Days) *</Label>
-                                <Input
-                                    type="number"
-                                    min="1"
-                                    value={formData.durationDays}
-                                    onChange={(e) => setFormData({ ...formData, durationDays: parseInt(e.target.value) })}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Nights *</Label>
-                                <Input
-                                    type="number"
-                                    min="0"
-                                    value={formData.durationNights}
-                                    onChange={(e) => setFormData({ ...formData, durationNights: parseInt(e.target.value) })}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Starting Price ($) *</Label>
-                                <Input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={formData.startingPrice}
-                                    onChange={(e) => setFormData({ ...formData, startingPrice: parseFloat(e.target.value) })}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Price Per Person ($) *</Label>
-                                <Input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    value={formData.pricePerPerson}
-                                    onChange={(e) => setFormData({ ...formData, pricePerPerson: parseFloat(e.target.value) })}
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <Label>Description</Label>
-                            <Textarea
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="Brief package description..."
-                                rows={3}
-                                className="mt-1"
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
+                    <PackageFormContent />
+                    <DialogFooter className="gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setIsCreating(false)} disabled={isCreatingPackage}>
                             Cancel
                         </Button>
@@ -402,43 +621,13 @@ export default function PackagesManagementTab() {
 
             {/* Edit Package Dialog */}
             <Dialog open={!!editingPackageId} onOpenChange={() => setEditingPackageId(null)}>
-                <DialogContent className="max-w-lg">
+                <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Edit Package</DialogTitle>
                         <DialogDescription>Update package information</DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-2">
-                        <div>
-                            <Label>Package Name</Label>
-                            <Input
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                className="mt-1"
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label>Starting Price ($)</Label>
-                                <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={formData.startingPrice}
-                                    onChange={(e) => setFormData({ ...formData, startingPrice: parseFloat(e.target.value) })}
-                                    className="mt-1"
-                                />
-                            </div>
-                            <div>
-                                <Label>Duration String</Label>
-                                <Input
-                                    value={formData.duration}
-                                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                                    placeholder="e.g., 5 days, 4 nights"
-                                    className="mt-1"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                    <DialogFooter>
+                    <PackageFormContent />
+                    <DialogFooter className="gap-2 sm:gap-0">
                         <Button variant="outline" onClick={() => setEditingPackageId(null)} disabled={isUpdatingPackage}>
                             Cancel
                         </Button>

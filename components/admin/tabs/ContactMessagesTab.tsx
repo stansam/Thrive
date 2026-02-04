@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useContactMessages, useUpdateContactMessage, useDeleteContactMessage } from "@/lib/hooks/use-admin-api";
-import { Eye, Edit, Trash, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Eye, Edit, Trash, ChevronLeft, ChevronRight, MoreHorizontal, MessageSquare, AlertCircle } from "lucide-react";
 import type { ContactMessage } from "@/lib/types/admin.d.ts";
 import {
     Dialog,
@@ -156,7 +156,7 @@ export default function ContactMessagesTab() {
     return (
         <div className="space-y-4">
             {/* Filters */}
-            <div className="flex justify-end gap-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-2">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="All Status" />
@@ -182,8 +182,68 @@ export default function ContactMessagesTab() {
                 </Select>
             </div>
 
-            {/* Contact Messages Table Card */}
-            <Card>
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+                {isLoading ? (
+                    Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-lg" />)
+                ) : contacts?.length === 0 ? (
+                    <div className="text-center p-8 text-muted-foreground bg-muted/20 rounded-lg">No contact messages found.</div>
+                ) : (
+                    contacts?.map((contact: ContactMessage) => (
+                        <Card key={contact.id} className="overflow-hidden">
+                            <CardHeader className="pb-2">
+                                <div className="flex justify-between items-start">
+                                    <Badge className={`hover:bg-opacity-80 border-none shadow-none capitalize ${getStatusColor(contact.status)}`}>
+                                        {contact.status.replace("_", " ")}
+                                    </Badge>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => openViewModal(contact)}>
+                                                <Eye className="mr-2 h-4 w-4" /> View Details
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={() => openEditModal(contact)}>
+                                                <Edit className="mr-2 h-4 w-4" /> Update Status
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem
+                                                className="text-destructive focus:text-destructive"
+                                                onClick={() => setDeletingMessageId(contact.id)}
+                                            >
+                                                <Trash className="mr-2 h-4 w-4" /> Delete
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                <CardTitle className="text-base truncate" title={contact.subject}>
+                                    {contact.subject}
+                                </CardTitle>
+                                <CardDescription className="flex items-center mt-1 text-xs">
+                                    From: {contact.name}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pb-2 text-sm space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground flex items-center"><AlertCircle className="w-3 h-3 mr-1" /> Priority:</span>
+                                    <Badge className={`hover:bg-opacity-80 border-none shadow-none capitalize text-xs ${getPriorityColor(contact.priority)}`}>
+                                        {contact.priority}
+                                    </Badge>
+                                </div>
+                                <div className="flex justify-between items-center bg-muted/30 p-2 rounded">
+                                    <span className="text-muted-foreground flex items-center"><MessageSquare className="w-3 h-3 mr-1" /> Date:</span>
+                                    <span>{format(new Date(contact.created_at), "MMM d, yyyy")}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
+            </div>
+
+            {/* Desktop Table View */}
+            <Card className="hidden md:block">
                 <CardHeader className="px-6 py-4 border-b">
                     <CardTitle>Contact Messages</CardTitle>
                     <CardDescription>

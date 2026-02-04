@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { usePayments, useRefundPayment } from "@/lib/hooks/use-admin-api";
-import { Eye, DollarSign, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Eye, DollarSign, ChevronLeft, ChevronRight, MoreHorizontal, CreditCard, User } from "lucide-react";
 import type { AdminPayment } from "@/lib/types/admin.d.ts";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { DateRange } from "react-day-picker";
@@ -123,6 +123,12 @@ export default function PaymentsManagementTab() {
         setRefundReason("");
     };
 
+    const StatusBadge = ({ status }: { status: string }) => (
+        <Badge className={`hover:bg-opacity-80 border-none shadow-none capitalize ${getStatusColor(status)}`}>
+            {status}
+        </Badge>
+    );
+
     return (
         <div className="space-y-4">
             {/* Filters */}
@@ -154,8 +160,63 @@ export default function PaymentsManagementTab() {
                 </div>
             </div >
 
-            {/* Payments Table Card */}
-            <Card>
+            {/* Mobile Card View */}
+            <div className="grid grid-cols-1 gap-4 md:hidden">
+                {isLoading ? (
+                    Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-lg" />)
+                ) : payments?.length === 0 ? (
+                    <div className="text-center p-8 text-muted-foreground bg-muted/20 rounded-lg">No payments found.</div>
+                ) : (
+                    payments?.map((payment: AdminPayment) => (
+                        <Card key={payment.id} className="overflow-hidden">
+                            <CardHeader className="pb-2">
+                                <div className="flex justify-between items-start">
+                                    <StatusBadge status={payment.status} />
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => openViewModal(payment)}>
+                                                <Eye className="mr-2 h-4 w-4" /> View Details
+                                            </DropdownMenuItem>
+                                            {payment.status === "paid" && (
+                                                <DropdownMenuItem
+                                                    className="text-destructive focus:text-destructive"
+                                                    onClick={() => openRefundModal(payment)}
+                                                >
+                                                    <DollarSign className="mr-2 h-4 w-4" /> Process Refund
+                                                </DropdownMenuItem>
+                                            )}
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                                <CardTitle className="text-xl">
+                                    ${payment.amount.toFixed(2)} <span className="text-sm font-normal text-muted-foreground">{payment.currency}</span>
+                                </CardTitle>
+                                <CardDescription className="flex items-center mt-1 text-xs font-mono">
+                                    {payment.payment_reference}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="pb-2 text-sm space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground flex items-center"><User className="w-3 h-3 mr-1" /> User:</span>
+                                    <span>{payment.user?.fullName || "Guest"}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-muted-foreground flex items-center"><CreditCard className="w-3 h-3 mr-1" /> Method:</span>
+                                    <span className="capitalize">{payment.payment_method?.replace('_', ' ') || "N/A"}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
+            </div>
+
+            {/* Desktop Table View */}
+            <Card className="hidden md:block">
                 <CardHeader className="px-6 py-4 border-b">
                     <CardTitle>Payments</CardTitle>
                     <CardDescription>
@@ -214,12 +275,10 @@ export default function PaymentsManagementTab() {
                                             ${payment.amount.toFixed(2)} {payment.currency}
                                         </TableCell>
                                         <TableCell className="capitalize text-sm text-muted-foreground">
-                                            {payment.payment_method || "N/A"}
+                                            {payment.payment_method?.replace('_', ' ') || "N/A"}
                                         </TableCell>
                                         <TableCell>
-                                            <Badge className={`hover:bg-opacity-80 border-none shadow-none ${getStatusColor(payment.status)}`}>
-                                                {payment.status}
-                                            </Badge>
+                                            <StatusBadge status={payment.status} />
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <DropdownMenu>
@@ -293,25 +352,23 @@ export default function PaymentsManagementTab() {
                     </DialogHeader>
                     {selectedPayment && (
                         <div className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-2 gap-6 bg-muted/30 p-4 rounded-lg">
                                 <div className="space-y-4">
                                     <div>
                                         <Label className="text-muted-foreground text-xs uppercase tracking-wider">Amount</Label>
-                                        <p className="font-medium text-2xl">
+                                        <p className="font-medium text-2xl text-green-700">
                                             ${selectedPayment.amount.toFixed(2)} <span className="text-sm text-muted-foreground">{selectedPayment.currency}</span>
                                         </p>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground text-xs uppercase tracking-wider">Status</Label>
                                         <div>
-                                            <Badge className={`mt-1 ${getStatusColor(selectedPayment.status)}`}>
-                                                {selectedPayment.status}
-                                            </Badge>
+                                            <StatusBadge status={selectedPayment.status} />
                                         </div>
                                     </div>
                                     <div>
                                         <Label className="text-muted-foreground text-xs uppercase tracking-wider">Method</Label>
-                                        <p className="font-medium capitalize">{selectedPayment.payment_method || "N/A"}</p>
+                                        <p className="font-medium capitalize">{selectedPayment.payment_method?.replace('_', ' ') || "N/A"}</p>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
@@ -324,7 +381,7 @@ export default function PaymentsManagementTab() {
                                     {selectedPayment.booking && (
                                         <div>
                                             <Label className="text-muted-foreground text-xs uppercase tracking-wider">Booking Ref</Label>
-                                            <p className="font-mono">{selectedPayment.booking.reference}</p>
+                                            <p className="font-mono text-lg">{selectedPayment.booking.reference}</p>
                                         </div>
                                     )}
                                 </div>
@@ -332,7 +389,7 @@ export default function PaymentsManagementTab() {
 
                             <div className="border-t pt-4">
                                 <h4 className="font-semibold mb-3">Customer Information</h4>
-                                <div className="grid grid-cols-2 gap-4 bg-muted/30 p-4 rounded-lg">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <Label className="text-muted-foreground text-xs">Name</Label>
                                         <p className="font-medium">{selectedPayment.user?.fullName || "N/A"}</p>

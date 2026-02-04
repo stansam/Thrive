@@ -40,6 +40,16 @@ export interface AdminBooking {
     departure_date?: string;
     return_date?: string;
     total_price: number;
+    base_price?: number;
+    service_fee?: number;
+    taxes?: number;
+    discount?: number;
+    airline?: string;
+    flight_number?: string;
+    airline_confirmation?: string; // PNR
+    ticket_numbers?: string[];
+    special_requests?: string;
+    notes?: string;
     created_at: string;
     customer?: {
         id: string;
@@ -50,7 +60,8 @@ export interface AdminBooking {
     package?: {
         id: string;
         name: string;
-        duration: string;
+        duration_days: number;
+        duration_nights: number;
     };
     passengers?: any[];
     payments?: AdminPayment[];
@@ -63,8 +74,16 @@ export interface AdminQuote {
     destination: string;
     trip_type: string;
     status: string;
+    quoted_price?: number;
+    service_fee?: number;
     total_price?: number;
+    agent_notes?: string;
+    quote_details?: any; // JSON object
     created_at: string;
+    flexible_dates?: string;
+    num_adults?: number;
+    num_children?: number;
+    additional_details?: string;
     user?: {
         id: string;
         fullName: string;
@@ -76,12 +95,26 @@ export interface AdminPackage {
     id: string;
     name: string;
     slug: string;
-    destination: string;
-    duration: string;
+    destination_city: string;
+    destination_country: string;
+    duration_days: number;
+    duration_nights: number;
     starting_price: number;
+    price_per_person: number;
     is_active: boolean;
+    is_featured: boolean;
+    description?: string; // mapped from full_description or short_description? Backend has both. Let's assume full_description for now or optional.
+    full_description?: string;
+    short_description?: string;
+    highlights?: string[];
+    inclusions?: string[];
+    exclusions?: string[];
+    hotel_name?: string;
+    hotel_rating?: number;
+    room_type?: string;
     featured_image?: string;
-    description?: string;
+    meta_title?: string;
+    meta_description?: string;
 }
 
 export interface AdminPayment {

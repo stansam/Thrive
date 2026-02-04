@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useUsers, useUser, useUpdateUser } from "@/lib/hooks/use-admin-api";
-import { Search, Eye, Edit, UserCheck, UserX, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, MoreHorizontal, User, Mail, Calendar } from "lucide-react";
 import type { AdminUser } from "@/lib/types/admin.d.ts";
 import {
     Dialog,
@@ -24,23 +24,12 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -80,6 +69,7 @@ export default function UsersManagementTab() {
         isActive: statusFilter === "all" ? "" : statusFilter,
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { user: selectedUser, isLoading: loadingUser, refresh: refreshSelectedUser } = useUser(selectedUserId);
     const { user: editingUser, isLoading: loadingEditUser } = useUser(editingUserId);
     const { updateUser, isLoading: updating } = useUpdateUser();
@@ -147,16 +137,16 @@ export default function UsersManagementTab() {
                         <div className="relative w-full sm:w-96">
                             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Search users..."
+                                placeholder="Search users by name or email..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="pl-8"
                             />
                         </div>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <Select value={roleFilter} onValueChange={setRoleFilter}>
-                            <SelectTrigger className="w-[150px]">
+                            <SelectTrigger>
                                 <SelectValue placeholder="All Roles" />
                             </SelectTrigger>
                             <SelectContent>
@@ -168,7 +158,7 @@ export default function UsersManagementTab() {
                             </SelectContent>
                         </Select>
                         <Select value={subscriptionFilter} onValueChange={setSubscriptionFilter}>
-                            <SelectTrigger className="w-[150px]">
+                            <SelectTrigger>
                                 <SelectValue placeholder="All Tiers" />
                             </SelectTrigger>
                             <SelectContent>
@@ -180,7 +170,7 @@ export default function UsersManagementTab() {
                             </SelectContent>
                         </Select>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-[150px]">
+                            <SelectTrigger>
                                 <SelectValue placeholder="All Status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -190,8 +180,56 @@ export default function UsersManagementTab() {
                             </SelectContent>
                         </Select>
                     </div>
-                    {/* Users Table Card */}
-                    <Card>
+
+                    {/* Mobile Card View */}
+                    <div className="grid grid-cols-1 gap-4 md:hidden">
+                        {isLoading ? (
+                            Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-lg" />)
+                        ) : users?.length === 0 ? (
+                            <div className="text-center p-8 text-muted-foreground bg-muted/20 rounded-lg">No users found.</div>
+                        ) : (
+                            users?.map((user: AdminUser) => (
+                                <Card key={user.id} className="overflow-hidden">
+                                    <CardHeader className="pb-2">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-10 w-10">
+                                                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.first_name} ${user.last_name}`} alt={`${user.first_name} ${user.last_name}`} />
+                                                    <AvatarFallback className="bg-primary/10 text-primary">
+                                                        {user.first_name?.[0]}{user.last_name?.[0]}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <CardTitle className="text-base">{user.first_name} {user.last_name}</CardTitle>
+                                                    <CardDescription className="text-xs">{user.email}</CardDescription>
+                                                </div>
+                                            </div>
+                                            <Button variant="ghost" size="icon" onClick={() => handleManageUser(user.id)}>
+                                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                            </Button>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="pb-2 text-sm space-y-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground flex items-center"><User className="w-3 h-3 mr-1" /> Role:</span>
+                                            <Badge variant="outline" className="capitalize">{user.role}</Badge>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground flex items-center">Sub:</span>
+                                            <span className="capitalize">{user.subscription_tier}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-muted-foreground flex items-center">Status:</span>
+                                            <Badge variant={user.is_active ? "default" : "destructive"} className="text-xs">{user.is_active ? "Active" : "Inactive"}</Badge>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        )}
+                    </div>
+
+                    {/* Desktop Table View */}
+                    <Card className="hidden md:block">
                         <CardHeader className="px-6 py-4 border-b">
                             <CardTitle>Users</CardTitle>
                             <CardDescription>
@@ -321,7 +359,7 @@ export default function UsersManagementTab() {
                     <DialogHeader>
                         <DialogTitle>Edit User Profile</DialogTitle>
                         <DialogDescription>
-                            Make changes to the user's profile and permissions.
+                            Make changes to the user&apos;s profile and permissions.
                         </DialogDescription>
                     </DialogHeader>
                     {loadingEditUser ? (
@@ -471,7 +509,7 @@ function UserDetailView({
             </div>
 
             <Tabs defaultValue="overview" className="space-y-4">
-                <TabsList>
+                <TabsList className="w-full justify-start overflow-x-auto">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="bookings">Bookings</TabsTrigger>
                     <TabsTrigger value="payments">Payments</TabsTrigger>
@@ -493,7 +531,7 @@ function UserDetailView({
                                     </div>
                                     <div className="space-y-1">
                                         <Label className="text-muted-foreground">Email</Label>
-                                        <div className="font-medium">{user.email}</div>
+                                        <div className="font-medium break-all">{user.email}</div>
                                     </div>
                                     <div className="space-y-1">
                                         <Label className="text-muted-foreground">Phone</Label>
@@ -519,7 +557,7 @@ function UserDetailView({
                                     </div>
                                     <div className="space-y-1">
                                         <Label className="text-muted-foreground">User ID</Label>
-                                        <div className="text-xs text-muted-foreground font-mono">{user.id}</div>
+                                        <div className="text-xs text-muted-foreground font-mono break-all">{user.id}</div>
                                     </div>
                                     <div className="space-y-1">
                                         <Label className="text-muted-foreground">Member Since</Label>
@@ -552,7 +590,25 @@ function UserDetailView({
                 </TabsContent>
 
                 <TabsContent value="bookings">
-                    <Card>
+                    {/* Mobile Bookings List */}
+                    <div className="md:hidden space-y-3">
+                        {bookings?.map((booking: any) => (
+                            <Card key={booking.id}>
+                                <CardHeader className="p-4 pb-2">
+                                    <div className="flex justify-between">
+                                        <Badge variant="outline">{booking.status}</Badge>
+                                        <span className="font-bold">${booking.total_price?.toFixed(2)}</span>
+                                    </div>
+                                    <CardDescription>{booking.booking_reference}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-4 pt-0 text-sm text-muted-foreground">
+                                    {format(new Date(booking.created_at), "MMM d, yyyy")} • {booking.booking_type}
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+
+                    <Card className="hidden md:block">
                         <CardHeader>
                             <CardTitle>Booking History</CardTitle>
                             <CardDescription>View all bookings associated with this user.</CardDescription>
@@ -607,7 +663,25 @@ function UserDetailView({
                 </TabsContent>
 
                 <TabsContent value="payments">
-                    <Card>
+                    {/* Mobile Payments List */}
+                    <div className="md:hidden space-y-3">
+                        {payments?.map((payment: any) => (
+                            <Card key={payment.id}>
+                                <CardHeader className="p-4 pb-2">
+                                    <div className="flex justify-between">
+                                        <Badge variant={payment.status === 'PAID' ? 'default' : 'secondary'}>{payment.status}</Badge>
+                                        <span className="font-bold">${payment.amount?.toFixed(2)}</span>
+                                    </div>
+                                    <CardDescription>{payment.payment_reference || "N/A"}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-4 pt-0 text-sm text-muted-foreground">
+                                    {format(new Date(payment.created_at), "MMM d, yyyy")} • {payment.payment_method?.replace('_', ' ')}
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+
+                    <Card className="hidden md:block">
                         <CardHeader>
                             <CardTitle>Payment History</CardTitle>
                             <CardDescription>View all payments made by this user.</CardDescription>
